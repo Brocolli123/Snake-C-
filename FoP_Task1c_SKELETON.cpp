@@ -11,6 +11,8 @@
 //---------------------------------------------------------------------------
 
 //include standard libraries
+
+#include <fstream>
 #include <iostream>	
 #include <iomanip> 
 #include <conio.h> 
@@ -61,6 +63,7 @@ int main()
 	bool wantsToQuit(const int key);
 	bool isArrowKey(const int k);
 	int  getKeyPress();
+	void checkScoreFile(const int score);		//take score in?
 	void endProgram();
 
 	//local variable declarations 
@@ -309,6 +312,39 @@ void paintGrid(const char g[][SIZEX])
 		cout << endl;
 	}
 }
+
+void checkScoreFile(const int score) {
+		string name;
+		cout << "\nWhat is the player's name? ";
+		cin >> name;
+		//get score from program
+
+		ifstream fin;
+		fin.open(name + ".txt", ios::in);	//opens file with name as filename. in read mode
+
+		if (fin.fail())
+		{
+			cout << "\nNew Player: ";		//new player
+			ofstream fout;
+			fout.open(name + ".txt", ios::out);	//create file
+			fout << score;						//set score
+			fout.close();
+		}
+		else { //player already exists
+			int previousscore;
+			fin >> previousscore;
+			if (previousscore < score) {		//if current score is above score in file
+				fin.close();
+				cout << "\nNew High Score: ";
+				ofstream fout;
+				fout.open(name + ".txt", ios::out);	//open file
+				fout << score;						//change score to new score
+				fout.close();
+			}
+			else
+				fin.close();
+		}
+	}
 
 void endProgram()
 {
