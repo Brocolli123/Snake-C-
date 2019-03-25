@@ -19,6 +19,7 @@
 #include <cassert> 
 #include <string>
 #include <sstream>
+#include <ctime>
 using namespace std;
 
 //include our own libraries
@@ -108,9 +109,8 @@ void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], Item& spot)
 
 void setSpotInitialCoordinates(Item& spot)
 { //set spot coordinates inside the grid at random at beginning of game
-//TODO: Ensure Spot does not spwan on inner walls
-	//int spawnable = 1;      
-                                     //Does the random range already do this without the dowhile?
+   
+                //Does the random range already make it only spawn on inner walls without the dowhile?
   do {
     spot.y = random(SIZEY - 2);      //vertical coordinate in range [1..(SIZEY - 2)]
     spot.x = random(SIZEX - 2);      //horizontal coordinate in range [1..(SIZEX - 2)]
@@ -176,8 +176,6 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 		spot.x += dx;	//go in that X direction
 		break;
 	case WALL:  		//hit a wall and stay there
-//TODO: Remove alarm when bumping into walls - too annoying
-		cout << '\a';	//beep the alarm
 		mess = "CANNOT GO THERE!";
 		break;
 	}
