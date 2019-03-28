@@ -20,6 +20,7 @@
 #include <string>
 #include <sstream>
 #include <ctime>
+#include <vector>
 using namespace std;
 
 //include our own libraries
@@ -36,6 +37,9 @@ const int  SIZEX(12);    	//horizontal dimension
 const int  SIZEY(10);		//vertical dimension
 //defining symbols used for display of the grid and content
 const char SPOT('@');   	//spot
+const char MOUSE('+');
+const char PILL('0');
+const char TAIL('=');
 const char TUNNEL(' ');    	//tunnel
 const char WALL('#');    	//border
 //defining the command letters to move the spot on the maze
@@ -70,7 +74,11 @@ int main()
 	//local variable declarations 
 	char grid[SIZEY][SIZEX];			//grid for display
 	char maze[SIZEY][SIZEX];			//structure of the maze
-	Item spot = { 0, 0, SPOT }; 		//spot's position and symbol
+	Item HEAD = { 0, 0, SPOT }; 		//spot's position and symbol
+	Item Tail = { 0,0,TAIL };			//Tail
+	Item Mouse = { 0,0, MOUSE };		//mouse
+	Item Pill = { 0,0, PILL };			//pill
+	vector<Item> Snake = {{0,0,HEAD}, {0,0,TAIL}, {0,0,TAIL},{0,0,TAIL} };
 	string message("LET'S START...");	//current message to player
 
 	//action...
@@ -177,6 +185,7 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 		break;
 	case WALL:  		//hit a wall and stay there
 		mess = "CANNOT GO THERE!";
+		//End Game
 		break;
 	}
 }
