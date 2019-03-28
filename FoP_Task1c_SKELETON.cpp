@@ -204,12 +204,12 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	void placeItem(char g[][SIZEX], const Item& spot);
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
-	//for (size_t i(snake.size()); i == 0; --i) {			//Place head last so it appears on top (on initial snake)
-	//	placeItem(grid, snake.at(i));			//set current spot of snake
-	//}
-	for (size_t i(1); i < 4; ++i) {
-		placeItem(grid, snake.at(i));
+	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
+		placeItem(grid, snake.at(i));			//set current spot of snake
 	}
+	//for (size_t i(1); i < 4; ++i) {
+		//placeItem(grid, snake.at(i));
+	//}
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
