@@ -36,7 +36,7 @@ using namespace std;
 const int  SIZEX(12);    	//horizontal dimension
 const int  SIZEY(10);		//vertical dimension
 //defining symbols used for display of the grid and content
-const char SPOT('@');   	//spot
+const char HEAD('@');   	//spot
 const char MOUSE('+');
 const char PILL('0');
 const char TAIL('=');
@@ -59,6 +59,8 @@ struct Item {
 //----- run game
 //---------------------------------------------------------------------------
 
+//to move snake move head to new position and delete the tail	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 int main()
 {
 	//function declarations (prototypes)
@@ -74,23 +76,23 @@ int main()
 	//local variable declarations 
 	char grid[SIZEY][SIZEX];			//grid for display
 	char maze[SIZEY][SIZEX];			//structure of the maze
-	Item HEAD = { 0, 0, SPOT }; 		//spot's position and symbol
-	Item Tail = { 0,0,TAIL };			//Tail
-	Item Mouse = { 0,0, MOUSE };		//mouse
-	Item Pill = { 0,0, PILL };			//pill
-	vector<Item> Snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
+	//Item HEAD = { 0, 0, SPOT }; 		//spot's position and symbol
+	//Item Tail = { 0,0,TAIL };			//Tail
+	Item mouse = { 0,0, MOUSE };		//mouse
+	Item pill = { 0,0, PILL };			//pill
+	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
 	string message("LET'S START...");	//current message to player
 
 	//action...
 	seed();								//seed the random number generator
 	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
-	initialiseGame(grid, maze, Snake);	//initialise grid (incl. walls and spot)
+	initialiseGame(grid, maze,snake);	//initialise grid (incl. walls and spot)
 	int key;							//current key selected by player
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
 	    (key) = getKeyPress(); 	//read in  selected key: arrow or letter command
 		if (isArrowKey(key))
-			updateGame(grid, maze, Snake, key, message);
+			updateGame(grid, maze, snake, key, message);
 		else
 			message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
@@ -123,7 +125,7 @@ void setSnakeInitialCoordinates(vector<Item>& snake)
 	for (size_t i(1); i < snake.size(); ++i) {		//go through loop setting position of all the snake items to same spot
 		snake.at(i).y = snake.at(0).y;
 		snake.at(i).x = snake.at(0).x;
-	}
+	}	//Place head last so it appears on top (on initial snake)
 
 } 
 
@@ -202,8 +204,11 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	void placeItem(char g[][SIZEX], const Item& spot);
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
-	for (size_t i(1); i < snake.size(); ++i) {
-		placeItem(grid, snake.at(i));	//set current spot of snake
+	//for (size_t i(snake.size()); i == 0; --i) {			//Place head last so it appears on top (on initial snake)
+	//	placeItem(grid, snake.at(i));			//set current spot of snake
+	//}
+	for (size_t i(1); i < 4; ++i) {
+		placeItem(grid, snake.at(i));
 	}
 }
 
