@@ -62,9 +62,9 @@ struct Item {
 int main()
 {
 	//function declarations (prototypes)
-	void initialiseGame(char g[][SIZEX], char m[][SIZEX], Item& spot);
+	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& s, const int kc, string& mess);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
 	bool wantsToQuit(const int key);
 	bool isArrowKey(const int k);
 	int  getKeyPress();
@@ -78,19 +78,19 @@ int main()
 	Item Tail = { 0,0,TAIL };			//Tail
 	Item Mouse = { 0,0, MOUSE };		//mouse
 	Item Pill = { 0,0, PILL };			//pill
-	vector<Item> Snake = {{0,0,HEAD}, {0,0,TAIL}, {0,0,TAIL},{0,0,TAIL} };
+	vector<Item> Snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
 	string message("LET'S START...");	//current message to player
 
 	//action...
 	seed();								//seed the random number generator
 	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
-	initialiseGame(grid, maze, spot);	//initialise grid (incl. walls and spot)
+	initialiseGame(grid, maze, Snake);	//initialise grid (incl. walls and spot)
 	int key;							//current key selected by player
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
 	    (key) = getKeyPress(); 	//read in  selected key: arrow or letter command
 		if (isArrowKey(key))
-			updateGame(grid, maze, spot, key, message);
+			updateGame(grid, maze, Snake, key, message);
 		else
 			message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
@@ -104,25 +104,27 @@ int main()
 //----- initialise game state
 //---------------------------------------------------------------------------
 
-void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], Item& spot)
+void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake)
 { //initialise grid and place spot in middle
 	void setInitialMazeStructure(char maze[][SIZEX]);
-	void setSpotInitialCoordinates(Item& spot);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], const Item& i);
+	void setSnakeInitialCoordinates(vector<Item>& Snake);
+	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake);
 
 	setInitialMazeStructure(maze);		//initialise maze
-	setSpotInitialCoordinates(spot);
-	updateGrid(grid, maze, spot);		//prepare grid
+	setSnakeInitialCoordinates(snake);
+	updateGrid(grid, maze, snake);		//prepare grid
 }
 
-void setSpotInitialCoordinates(Item& spot)
+void setSnakeInitialCoordinates(vector<Item>& snake)
 { //set spot coordinates inside the grid at random at beginning of game
    
-                //Does the random range already make it only spawn on inner walls without the dowhile?
-  do {
-    spot.y = random(SIZEY - 2);      //vertical coordinate in range [1..(SIZEY - 2)]
-    spot.x = random(SIZEX - 2);      //horizontal coordinate in range [1..(SIZEX - 2)]
-  } while (spot.x == 1 && spot.y == 0);   //Loops around finding a new random position if it is on the inner walls      TEST THIS??
+	snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+	snake.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	for (size_t i(1); i < snake.size(); ++i) {		//go through loop setting position of all the snake items to same spot
+		snake.at(i).y = snake.at(0).y;
+		snake.at(i).x = snake.at(0).x;
+	}
+
 } 
 
 void setInitialMazeStructure(char maze[][SIZEX])
@@ -156,14 +158,15 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& spot, const int keyCode, string& mess)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, const int keyCode, string& mess)
 { //update game
-	void updateGameData(const char g[][SIZEX], Item& s, const int kc, string& m);
-	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], const Item& s);
-	updateGameData(grid, spot, keyCode, mess);		//move spot in required direction
-	updateGrid(grid, maze, spot);					//update grid information
+	void updateGameData(const char g[][SIZEX], vector<Item>& s, const int kc, string& m);
+	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s);		//does vector have to be const
+	updateGameData(grid, snake, keyCode, mess);		//move spot in required direction
+	updateGrid(grid, maze, snake);					//update grid information
 }
-void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& mess)
+
+void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, string& mess)
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
@@ -177,25 +180,31 @@ void updateGameData(const char g[][SIZEX], Item& spot, const int key, string& me
 	setKeyDirection(key, dx, dy);
 
 	//check new target position in grid and update game data (incl. spot coordinates) if move is possible
-	switch (g[spot.y + dy][spot.x + dx])
-	{			//...depending on what's on the target position in grid...
-	case TUNNEL:		//can move
-		spot.y += dy;	//go in that Y direction
-		spot.x += dx;	//go in that X direction
-		break;
-	case WALL:  		//hit a wall and stay there
-		mess = "CANNOT GO THERE!";
-		//End Game
-		break;
+	//		snake.at(i).y = snake.at(0).y;
+	//snake.at(i).x = snake.at(0).x;
+	for (size_t i(1); i < snake.size(); ++i) {
+		switch (g[snake.at(i).y + dy][snake.at(i).x + dx])		//checking every point of snake for collision with wall
+		{			//...depending on what's on the target position in grid...
+		case TUNNEL:		//can move
+			snake.at(i).y += dy;	//go in that Y direction
+			snake.at(i).x += dx;	//go in that X direction
+			break;
+		case WALL:  		//hit a wall and stay there
+			mess = "CANNOT GO THERE!";
+			//End Game
+			break;
+		}
 	}
 }
-void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], const Item& spot)
+void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item& spot);
-
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
-	placeItem(grid, spot);	//set spot in grid
+	//go through place item for each spot of snake in loop
+	for (size_t i(1); i < snake.size(); ++i) {
+		placeItem(grid, snake.at(i));	//set current spot of snake
+	}
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
