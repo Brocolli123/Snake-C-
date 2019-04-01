@@ -49,6 +49,7 @@ const int  RIGHT(77);		//right arrow
 const int  LEFT(75);		//left arrow
 //defining the other command letters
 const char QUIT('Q');		//to end the game
+const char CHEAT('C');
 
 struct Item {
 	int x, y;
@@ -66,8 +67,10 @@ int main()
 	//function declarations (prototypes)
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
+  void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
+  void CheatMode(vector<Item>& snake);
 	bool wantsToQuit(const int key);
+  bool isCheatKey(const int k);
 	bool isArrowKey(const int k);
 	int  getKeyPress();
 	void checkScoreFile(const int score);		//take score in?
@@ -82,6 +85,10 @@ int main()
 	Item pill = { 0,0, PILL };			//pill
 	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
 	string message("LET'S START...");	//current message to player
+  bool inCheatMode = false;  //To check if already in cheatmode
+  bool hasCheated = false;  //Use later when displaying score to keep it to 0
+
+  //have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
 
 	//action...
 	seed();								//seed the random number generator
@@ -90,11 +97,26 @@ int main()
 	int key;							//current key selected by player
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
-	    (key) = getKeyPress(); 	//read in  selected key: arrow or letter command
-		if (isArrowKey(key))
-			updateGame(grid, maze, snake, key, message);
-		else
-			message = "INVALID KEY!";  //set 'Invalid key' message
+	  (key) = getKeyPress(); 	//read in  selected key: arrow or letter command
+    if (isArrowKey(key))
+      updateGame(grid, maze, snake, key, message);                                  //USE a switch statement?
+    else
+      if (isCheatKey(key)) {   //Upper or lower case C                              //CLEAN THIS UP 
+        hasCheated = true;    //this has to run every time
+        inCheatMode = !inCheatMode;   //flips the bool
+        if (inCheatMode) {
+          message = "CHEAT MODE ON";
+          CheatMode(snake);
+          updateGame(grid,maze,snake,key,message);
+          //Stop recording score  (use a bool and stop displaying score?)
+        }
+        else {
+          message = "CHEAT MODE OFF";
+          //Update how to use cheat mode message
+        }
+      }
+      //else                                                                                                      //FIXXXXXX THIXXXXXXXX
+	     // message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -207,9 +229,17 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
 		placeItem(grid, snake.at(i));			//set current spot of snake
 	}
-	//for (size_t i(1); i < 4; ++i) {
+	//for (size_t i(1); i < 4; ++i) {   //flip this boy
 		//placeItem(grid, snake.at(i));
 	//}
+}
+
+void CheatMode(vector<Item> snake) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+  for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)
+    cout << '\a';	//beep the alarm
+  }
+  
+
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
@@ -268,6 +298,9 @@ bool isArrowKey(const int key)
 bool wantsToQuit(const int key)
 {	//check if the user wants to quit (when key is 'Q' or 'q')
 	return toupper(key) == QUIT;
+}
+bool isCheatKey(const int key) {  //check if the user wants to turn on cheat mode (when key is 'C' or 'c')
+  return toupper(key) == CHEAT;
 }
 
 //---------------------------------------------------------------------------
