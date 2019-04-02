@@ -67,10 +67,10 @@ int main()
 	//function declarations (prototypes)
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
-  void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
-  void CheatMode(vector<Item>& snake);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
+	void CheatMode(vector<Item>& snake, size_t& cheatLength);
 	bool wantsToQuit(const int key);
-  bool isCheatKey(const int k);
+	bool isCheatKey(const int k);
 	bool isArrowKey(const int k);
 	int  getKeyPress();
 	void checkScoreFile(const int score);		//take score in?
@@ -85,10 +85,11 @@ int main()
 	Item pill = { 0,0, PILL };			//pill
 	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
 	string message("LET'S START...");	//current message to player
-  bool inCheatMode = false;  //To check if already in cheatmode
-  bool hasCheated = false;  //Use later when displaying score to keep it to 0
+	bool inCheatMode = false;  //To check if already in cheatmode
+	bool hasCheated = false;  //Use later when displaying score to keep it to 0
+	size_t cheatLength;
 
-  //have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
+	//have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
 
 	//action...
 	seed();								//seed the random number generator
@@ -97,26 +98,26 @@ int main()
 	int key;							//current key selected by player
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
-	  (key) = getKeyPress(); 	//read in  selected key: arrow or letter command
-    if (isArrowKey(key))
-      updateGame(grid, maze, snake, key, message);                                  //USE a switch statement?
-    else
-      if (isCheatKey(key)) {   //Upper or lower case C                              //CLEAN THIS UP 
-        hasCheated = true;    //this has to run every time
-        inCheatMode = !inCheatMode;   //flips the bool
-        if (inCheatMode) {
-          message = "CHEAT MODE ON";
-          CheatMode(snake);
-          updateGame(grid,maze,snake,key,message);
-          //Stop recording score  (use a bool and stop displaying score?)
-        }
-        else {
-          message = "CHEAT MODE OFF";
-          //Update how to use cheat mode message
-        }
-      }
-      //else                                                                                                      //FIXXXXXX THIXXXXXXXX
-	     // message = "INVALID KEY!";  //set 'Invalid key' message
+		key = getKeyPress(); 	//read in  selected key: arrow or letter command
+		if (isArrowKey(key))
+			updateGame(grid, maze, snake, key, message);                                  //USE a switch statement?
+		else
+		  if (isCheatKey(key)) {   //Upper or lower case C                              //CLEAN THIS UP 
+			hasCheated = true;    //this has to run every time
+			inCheatMode = !inCheatMode;   //flips the bool
+			if (inCheatMode) {
+			  message = "CHEAT MODE ON";
+			  CheatMode(snake, cheatLength);
+			  updateGame(grid,maze,snake,key,message);
+			  //Stop recording score  (use a bool and stop displaying score?)
+			}
+			else {
+			  message = "CHEAT MODE OFF";
+			  //Update how to use cheat mode message
+			}
+		  }
+		  //else                                                                                                      //FIXXXXXX THIXXXXXXXX
+			 // message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -206,19 +207,22 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 	//check new target position in grid and update game data (incl. spot coordinates) if move is possible
 	//		snake.at(i).y = snake.at(0).y;
 	//snake.at(i).x = snake.at(0).x;
-	for (size_t i(1); i < snake.size(); ++i) {
-		switch (g[snake.at(i).y + dy][snake.at(i).x + dx])		//checking every point of snake for collision with wall
+	switch (g[snake.at(0).y + dy][snake.at(0).x + dx])		//checking every point of snake for collision with wall
 		{			//...depending on what's on the target position in grid...
 		case TUNNEL:		//can move
-			snake.at(i).y += dy;	//go in that Y direction
-			snake.at(i).x += dx;	//go in that X direction
+			for (size_t i(snake.size() - 1); i > 0 ; --i) {		//move tail first then head.
+				snake.at(i).y = snake.at(i - 1).y;				//set to position before it
+				snake.at(i).x = snake.at(i - 1).x;
+			}
+			snake.at(0).y += dy;	//go in that Y direction
+			snake.at(0).x += dx;	//go in that X direction
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
 			//End Game
 			break;
 		}
-	}
+
 }
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake)
 { //update grid configuration after each move
@@ -229,14 +233,19 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
 		placeItem(grid, snake.at(i));			//set current spot of snake
 	}
+	placeItem(grid, snake.at(0));			//set current spot of snake
+
 	//for (size_t i(1); i < 4; ++i) {   //flip this boy
 		//placeItem(grid, snake.at(i));
 	//}
 }
 
-void CheatMode(vector<Item> snake) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+
+void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
   for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)
     cout << '\a';	//beep the alarm
+	cheatLength = snake.size();	//get original snake length before cheating
+	//snake.size() = 4;
   }
   
 
