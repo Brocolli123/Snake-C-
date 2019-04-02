@@ -343,8 +343,58 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	void paintGrid(const char g[][SIZEX]);
 //TODO: Change the colour of the messages
 	//display game title
-	showMessage(clBlack, clYellow, 0, 0, "___GAME___");
+	showMessage(clBlack, clYellow, 0, 0, "Snek Gam");
 //TODO: Display date and time from the system
+	
+	//string month;
+	//struct tm newtime; // Declares the structure for displaying time
+	//time_t now = time(0); // Gets the system time
+	//localtime_s(&newtime, &now); // Gets the local time
+	//switch (newtime.tm_mon + 1) //Selects the month based on the number contained in newtime
+	//{
+	//case(1):
+	//	month = "January";
+	//	break;
+	//case(2):
+	//	month = "February";
+	//	break;
+	//case(3):
+	//	month = "March";
+	//	break;
+	//case(4):
+	//	month = "April";
+	//	break;
+	//case(5):
+	//	month = "May";
+	//	break;
+	//case(6):
+	//	month = "June";
+	//	break;
+	//case(7):
+	//	month = "July";
+	//	break;
+	//case(8):
+	//	month = "August";
+	//	break;
+	//case(9):
+	//	month = "September";
+	//	break;
+	//case(10):
+	//	month = "October";
+	//	break;
+	//case(11):
+	//	month = "November";
+	//	break;
+	//default:
+	//	month = "December";
+	//	break;
+
+	//}
+	//cout << newtime.tm_mday << " " << month << " " << (1900 + newtime.tm_year) << ", "; //Outputs the Date
+	//cout << newtime.tm_hour << ":" << setfill('0') << setw(2) << newtime.tm_min << ":" << setfill('0') << setw(2) << newtime.tm_sec << endl; //Outputs the Time
+	
+	
+	
 	showMessage(clWhite, clRed, 40, 0, "FoP Task 1c - February 2019   ");
 //TODO: Show course SE/CS4G/CS, group number, students names and ids        CS4G2e  Lewis Birkett B8018431, Alex Hughes B7022472, Aiden Fleming B8025218
 	showMessage(clWhite, clRed, 40, 1, "Pascale Vacher                ");
