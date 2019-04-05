@@ -68,7 +68,7 @@ int main()
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
-	void CheatMode(vector<Item>& snake, size_t& cheatLength);
+	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	bool wantsToQuit(const int key);
 	bool isCheatKey(const int k);
 	bool isArrowKey(const int k);
@@ -84,6 +84,7 @@ int main()
 	Item mouse = { 0,0, MOUSE };		//mouse
 	Item pill = { 0,0, PILL };			//pill
 	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
+  vector<Item> cheatSnake = snake;
 	string message("LET'S START...");	//current message to player
 	bool inCheatMode = false;  //To check if already in cheatmode
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
@@ -104,21 +105,28 @@ int main()
 			updateGame(grid, maze, snake, key, message);                             
     else {
       if (toupper(key) == CHEAT) {
-        hasCheated = true;            //better way of doing this every time?
+        hasCheated = true;            //better way of doing this every time?  Used to stop recording score
         inCheatMode = !inCheatMode;   //flips the bool
         if (inCheatMode == true) {
+          //How to use cheat mode message
           message = "CHEAT MODE ON";        //Not displaying this message?
-          CheatMode(snake, cheatLength);
+          CheatMode(snake, cheatSnake);
           updateGame(grid, maze, snake, key, message);
-          //Stop recording score  (use a bool and stop displaying score?)
         }
         else {    //inCheatMode == False
           message = "CHEAT MODE OFF";
-          snake.resize(cheatLength);   //return it back to it's original size
+          //snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+          //for (size_t i(1); i < cheatSnake.size() - 1; ++i) {
+            //snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
+            //snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
+            //snake.at(i).y = cheatSnake.at(i).y;
+            //what happens past the length of the snake with the extended tail?
+          //}
+          snake = cheatSnake;   //return to it's pre-cheat length                       (THIS PUTS IT IN THE OLD SNAKE'S POSITION)
           //Update how to use cheat mode message
         }
       }
-      //else                                                               //ALWAYS RUNNING THROUGH THIS WHY????                  
+      //else                                                                                 //ALWAYS RUNNING THROUGH THIS WHY????                  
         //message = "INVALID KEY!";  //set 'Invalid key' message
     }
 	} while (!wantsToQuit(key));		//while user does not want to quit
@@ -238,13 +246,13 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 }
 
 
-void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
   for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
     cout << '\a';	//beep the alarm
     Sleep(100);
   }
-	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
-	snake.resize(4);  //Sets it back to 4
+	cheatSnake = snake;	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
+	snake.resize(3);  //Sets it back to 4
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
