@@ -144,7 +144,7 @@ void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake)
 { //initialise grid and place spot in middle
 	void setInitialMazeStructure(char maze[][SIZEX]);
 	void setSnakeInitialCoordinates(vector<Item>& Snake);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake);
+	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
 	setInitialMazeStructure(maze);		//initialise maze
 	setSnakeInitialCoordinates(snake);
@@ -156,10 +156,17 @@ void setSnakeInitialCoordinates(vector<Item>& snake)
    
 	snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
 	snake.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	//do  - // Alex - Can't test this because retargetting apparently doesn't work anymore, but should make it so the snake can't spawn in the interior walls. If it works then this can be cloned for the mouse
+	//{
+	//	snake.at(0).y = random(SIZEY - 2);		// Attempts to find co-ordinates at random again if the co-ordinate is inside a wall
+	//	snake.at(0).x = random(SIZEX - 2);		// make this into a do-while
+	//}  (snake.at(0).y == WALL || snake.at(0).y == WALL); 
 	for (size_t i(1); i < snake.size(); ++i) {		//go through loop setting position of all the snake items to same spot
 		snake.at(i).y = snake.at(0).y;
 		snake.at(i).x = snake.at(0).x;
 	}	//Place head last so it appears on top (on initial snake)
+
+	while
 
 } 
 
@@ -206,6 +213,7 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
+	//bool IsMousePresent = False   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
 	//assert (isArrowKey(key));                                                                                           //REMOVE FOR NOW SO CAN USE NON ARROW KEYS
  
 	//reset message to blank
@@ -228,9 +236,23 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
+			// Alex - Should end the game the same way that it does when you quit the program
+			//showMessage(clRed, clYellow, 40, 8, "Big Oof, You are a dead boy.");
+			//system("pause");	//hold output screen until a keyboard key is hit
 			//End Game
+	  //case mouse: - Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
+		  //IsMousePresent = false
+		  //snake.pushBack(TAIL, TAIL)
 			break;
 		}
+
+	//if (IsMousePresent == false)  -  // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
+	//{
+	//	mouse.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+	//  mouse.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	//
+	// IsMousePresent = true
+	//}
 
 }
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake)
@@ -398,7 +420,7 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	
 	showMessage(clWhite, clRed, 40, 0, "FoP Task 1c - February 2019   ");
 //TODO: Show course SE/CS4G/CS, group number, students names and ids        CS4G2e  Lewis Birkett B8018431, Alex Hughes B7022472, Aiden Fleming B8025218
-	showMessage(clWhite, clRed, 40, 1, "Pascale Vacher                ");
+	showMessage(clWhite, clRed, 40, 1, "The Big Oof Squad               ");
 	//display menu options available
 //TODO: Show other options availables when ready...
 	showMessage(clRed, clYellow, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
