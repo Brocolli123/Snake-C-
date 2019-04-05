@@ -90,6 +90,7 @@ int main()
 	size_t cheatLength;
 
 	//have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
+  //when size grows needs to check if incheatmode is true, then if it is only increase the cheatLength not current length
 
 	//action...
 	seed();								//seed the random number generator
@@ -113,9 +114,10 @@ int main()
 			}
 			else {
 			  message = "CHEAT MODE OFF";
+        snake.size() = cheatLength;   //return it back to it's original size
 			  //Update how to use cheat mode message
 			}
-		  }
+		}
 		  //else                                                                                                      //FIXXXXXX THIXXXXXXXX
 			 // message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
@@ -175,7 +177,7 @@ void setInitialMazeStructure(char maze[][SIZEX])
 			{
 			//not a direct copy, in case the symbols used are changed
 			case '#': maze[row][col] = WALL; break;
-			case ' ': maze[row][col] = TUNNEL; break;
+			case ' ': maze[row][col] = TUNNEL; break; 
 			}
 }
 
@@ -205,8 +207,6 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 	setKeyDirection(key, dx, dy);
 
 	//check new target position in grid and update game data (incl. spot coordinates) if move is possible
-	//		snake.at(i).y = snake.at(0).y;
-	//snake.at(i).x = snake.at(0).x;
 	switch (g[snake.at(0).y + dy][snake.at(0).x + dx])		//checking every point of snake for collision with wall
 		{			//...depending on what's on the target position in grid...
 		case TUNNEL:		//can move
@@ -231,21 +231,17 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
 	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
-		placeItem(grid, snake.at(i));			//set current spot of snake
+		placeItem(grid, snake.at(i));			//set current spot of snake tails
 	}
-	placeItem(grid, snake.at(0));			//set current spot of snake
-
-	//for (size_t i(1); i < 4; ++i) {   //flip this boy
-		//placeItem(grid, snake.at(i));
-	//}
+	placeItem(grid, snake.at(0));			//set current spot of snake head
 }
 
 
 void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
   for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)
     cout << '\a';	//beep the alarm
-	cheatLength = snake.size();	//get original snake length before cheating
-	//snake.size() = 4;
+	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
+	snake.size() = 4;
   }
   
 
