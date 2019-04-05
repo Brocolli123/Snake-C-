@@ -118,8 +118,8 @@ int main()
           //Update how to use cheat mode message
         }
       }
-      else   //ALWAYS RUNNING THROUGH THIS WHY????        
-        message = "INVALID KEY!";  //set 'Invalid key' message
+      //else                                                               //ALWAYS RUNNING THROUGH THIS WHY????                  
+        //message = "INVALID KEY!";  //set 'Invalid key' message
     }
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
@@ -239,13 +239,12 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 
 
 void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
-  for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
+  for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
     cout << '\a';	//beep the alarm
-	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
-	snake.resize(4);
+    Sleep(100);
   }
-  
-
+	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
+	snake.resize(4);  //Sets it back to 4
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
