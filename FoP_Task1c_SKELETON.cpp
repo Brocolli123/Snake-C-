@@ -101,25 +101,26 @@ int main()
 		renderGame(grid, message);			//display game info, modified grid and messages
 		key = getKeyPress(); 	//read in  selected key: arrow or letter command
 		if (isArrowKey(key))
-			updateGame(grid, maze, snake, key, message);                                  //USE a switch statement?
-		else
-		  if (isCheatKey(key)) {   //Upper or lower case C                              //CLEAN THIS UP 
-			  hasCheated = true;    //this has to run every time
-			  inCheatMode = !inCheatMode;   //flips the bool
-			    if (inCheatMode) {
-			      message = "CHEAT MODE ON";        //Not displaying this message?
-			      CheatMode(snake, cheatLength);
-			      updateGame(grid,maze,snake,key,message);
-			      //Stop recording score  (use a bool and stop displaying score?)
-			    }
-			    else {
-			          message = "CHEAT MODE OFF";
-               snake.resize(cheatLength);   //return it back to it's original size
-			         //Update how to use cheat mode message
-			    }
-		  }
-		  //else                                                                                                      //FIXXXXXX THIXXXXXXXX
-			    //message = "INVALID KEY!";  //set 'Invalid key' message
+			updateGame(grid, maze, snake, key, message);                             
+    else {
+      if (toupper(key) == CHEAT) {
+        hasCheated = true;            //better way of doing this every time?
+        inCheatMode = !inCheatMode;   //flips the bool
+        if (inCheatMode == true) {
+          message = "CHEAT MODE ON";        //Not displaying this message?
+          CheatMode(snake, cheatLength);
+          updateGame(grid, maze, snake, key, message);
+          //Stop recording score  (use a bool and stop displaying score?)
+        }
+        else {    //inCheatMode == False
+          message = "CHEAT MODE OFF";
+          snake.resize(cheatLength);   //return it back to it's original size
+          //Update how to use cheat mode message
+        }
+      }
+      else   //ALWAYS RUNNING THROUGH THIS WHY????        
+        message = "INVALID KEY!";  //set 'Invalid key' message
+    }
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -238,7 +239,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 
 
 void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
-  for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)
+  for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
     cout << '\a';	//beep the alarm
 	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
 	snake.resize(4);
@@ -303,9 +304,6 @@ bool isArrowKey(const int key)
 bool wantsToQuit(const int key)
 {	//check if the user wants to quit (when key is 'Q' or 'q')
 	return toupper(key) == QUIT;
-}
-bool isCheatKey(const int key) {  //check if the user wants to turn on cheat mode (when key is 'C' or 'c')
-  return toupper(key) == CHEAT;
 }
 
 //---------------------------------------------------------------------------
