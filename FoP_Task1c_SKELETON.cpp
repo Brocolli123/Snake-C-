@@ -104,22 +104,22 @@ int main()
 			updateGame(grid, maze, snake, key, message);                                  //USE a switch statement?
 		else
 		  if (isCheatKey(key)) {   //Upper or lower case C                              //CLEAN THIS UP 
-			hasCheated = true;    //this has to run every time
-			inCheatMode = !inCheatMode;   //flips the bool
-			if (inCheatMode) {
-			  message = "CHEAT MODE ON";
-			  CheatMode(snake, cheatLength);
-			  updateGame(grid,maze,snake,key,message);
-			  //Stop recording score  (use a bool and stop displaying score?)
-			}
-			else {
-			  message = "CHEAT MODE OFF";
-        snake.size() = cheatLength;   //return it back to it's original size
-			  //Update how to use cheat mode message
-			}
-		}
+			  hasCheated = true;    //this has to run every time
+			  inCheatMode = !inCheatMode;   //flips the bool
+			    if (inCheatMode) {
+			      message = "CHEAT MODE ON";        //Not displaying this message?
+			      CheatMode(snake, cheatLength);
+			      updateGame(grid,maze,snake,key,message);
+			      //Stop recording score  (use a bool and stop displaying score?)
+			    }
+			    else {
+			          message = "CHEAT MODE OFF";
+               snake.resize(cheatLength);   //return it back to it's original size
+			         //Update how to use cheat mode message
+			    }
+		  }
 		  //else                                                                                                      //FIXXXXXX THIXXXXXXXX
-			 // message = "INVALID KEY!";  //set 'Invalid key' message
+			    //message = "INVALID KEY!";  //set 'Invalid key' message
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -197,8 +197,8 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
-	assert (isArrowKey(key));
-
+	//assert (isArrowKey(key));                                                                                           //REMOVE FOR NOW SO CAN USE NON ARROW KEYS
+ 
 	//reset message to blank
 	mess = "";
 
@@ -241,7 +241,7 @@ void CheatMode(vector<Item>& snake, size_t& cheatLength) {    //Reset snake     
   for (int i(0); i < 3; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)
     cout << '\a';	//beep the alarm
 	cheatLength = snake.size();	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
-	snake.size() = 4;
+	snake.resize(4);
   }
   
 
@@ -264,7 +264,7 @@ void placeItem(char g[][SIZEX], const Item& item)
 void setKeyDirection(const int key, int& dx, int& dy)
 { //calculate direction indicated by key
 	bool isArrowKey(const int k);
-	assert (isArrowKey(key));
+	//assert (isArrowKey(key));       
 	switch (key)	//...depending on the selected key...
 	{
 	case LEFT:  	//when LEFT arrow pressed...
