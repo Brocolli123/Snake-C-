@@ -32,6 +32,7 @@ using namespace std;
 //----- define constants
 //---------------------------------------------------------------------------
 
+const int PILLMOVES(10);
 //defining the size of the grid
 const int  SIZEX(12);    	//horizontal dimension
 const int  SIZEY(10);		//vertical dimension
@@ -97,9 +98,12 @@ int main()
 	initialiseGame(grid, maze,snake);	//initialise grid (incl. walls and spot)
 	showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	int key;							//current key selected by player
+	int movesLeft = PILLMOVES;		//for how many turns left for pill
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
 		key = getKeyPress(); 	//read in  selected key: arrow or letter command
+		//string moves = to_string(movesLeft);					Use later when pill implemented
+		//showMessage(clRed, clYellow, 40, 13, moves);
 		if (isArrowKey(key))
 			updateGame(grid, maze, snake, key, message);                             
 		else {
@@ -107,27 +111,33 @@ int main()
 				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
 				inCheatMode = !inCheatMode;   //flips the bool
 				if (inCheatMode == true) {
-					showMessage(clRed, clYellow, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode		//GETS OVERWRITTEN AFTER DO...WHILE
+					showMessage(clRed, clYellow, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
 					message = "CHEAT MODE ON";
 					CheatMode(snake, cheatSnake);
 				}
 			else {    //inCheatMode == False
-				showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
-				message = "CHEAT MODE OFF";				//not needed
-				//snake.resize(cheatSnake.size());   //Set to size of cheatSnake
-				//for (size_t i(1); i < cheatSnake.size() - 1; ++i) {
-					//snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
-					//snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
-					//snake.at(i).y = cheatSnake.at(i).y;
-					//what happens past the length of the snake with the extended tail?
-				//}
-				snake = cheatSnake;   //return to it's pre-cheat length                       (THIS PUTS IT IN THE OLD SNAKE'S POSITION)
-				//Update how to use cheat mode message
+				showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
+				message = "CHEAT MODE OFF";
+				size_t currSnakeSize = snake.size();
+				snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+				for (size_t i(1); i < cheatSnake.size(); ++i) {
+					snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
+					if (i > currSnakeSize) {							//NOT RUNNING THROUGH THIS CODE
+						snake.at(i).x = snake.at(currSnakeSize).x;		//To make the extra snake positions spawn on top of the last tail element
+						snake.at(i).y = snake.at(currSnakeSize).y;
+					}
+					else {
+						snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
+						snake.at(i).y = cheatSnake.at(i).y;
+					}
+																			//Extra snake positions spawning at 0,0 not on top of the current tail end
+					}
 				}
 			} else
 				if (isArrowKey(key) == false && toupper(key) != CHEAT)                
 					message = "INVALID KEY!";  //set 'Invalid key' message	
 		}
+		--movesLeft;		//here or at top??????
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -232,6 +242,11 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 			}
 			snake.at(0).y += dy;	//go in that Y direction
 			snake.at(0).x += dx;	//go in that X direction
+			break;
+		case PILL:
+			snake.resize(4);	//shrink snake back to 4
+			//move snake
+			//destroy pill
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
@@ -450,7 +465,7 @@ void paintGrid(const char g[][SIZEX])
 	}
 }
 
-void checkScoreFile(const int score) {
+void checkScoreFile(const int score) {		//independent function at minute, needs integration
 		string name;
 		cout << "\nWhat is the player's name? ";
 		cin >> name;
