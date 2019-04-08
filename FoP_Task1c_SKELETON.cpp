@@ -67,6 +67,7 @@ int main()
 	//function declarations (prototypes)
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
+	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	bool wantsToQuit(const int key);
@@ -84,9 +85,9 @@ int main()
 	Item mouse = { 0,0, MOUSE };		//mouse
 	Item pill = { 0,0, PILL };			//pill
 	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
-  vector<Item> cheatSnake = snake;
+	vector<Item> cheatSnake = snake;
 	string message("LET'S START...");	//current message to player
-	bool inCheatMode = false;  //To check if already in cheatmode
+	bool inCheatMode = false;  //To check if already in cheatmode				//use struct???
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
 
 	//have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
@@ -96,38 +97,39 @@ int main()
 	seed();								//seed the random number generator
 	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
 	initialiseGame(grid, maze,snake);	//initialise grid (incl. walls and spot)
+	showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	int key;							//current key selected by player
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
 		key = getKeyPress(); 	//read in  selected key: arrow or letter command
 		if (isArrowKey(key))
 			updateGame(grid, maze, snake, key, message);                             
-    else {
-      if (toupper(key) == CHEAT) {
-        hasCheated = true;            //better way of doing this every time?  Used to stop recording score
-        inCheatMode = !inCheatMode;   //flips the bool
-        if (inCheatMode == true) {
-          //How to use cheat mode message
-          message = "CHEAT MODE ON";        //Not displaying this message?
-          CheatMode(snake, cheatSnake);
-          updateGame(grid, maze, snake, key, message);
-        }
-        else {    //inCheatMode == False
-          message = "CHEAT MODE OFF";
-          //snake.resize(cheatSnake.size());   //Set to size of cheatSnake
-          //for (size_t i(1); i < cheatSnake.size() - 1; ++i) {
-            //snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
-            //snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
-            //snake.at(i).y = cheatSnake.at(i).y;
-            //what happens past the length of the snake with the extended tail?
-          //}
-          snake = cheatSnake;   //return to it's pre-cheat length                       (THIS PUTS IT IN THE OLD SNAKE'S POSITION)
-          //Update how to use cheat mode message
-        }
-      }
-      //else                                                                                 //ALWAYS RUNNING THROUGH THIS WHY????                  
-        //message = "INVALID KEY!";  //set 'Invalid key' message
-    }
+		else {
+			if (toupper(key) == CHEAT) {
+				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
+				inCheatMode = !inCheatMode;   //flips the bool
+				if (inCheatMode == true) {
+					showMessage(clRed, clYellow, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode		//GETS OVERWRITTEN AFTER DO...WHILE
+					message = "CHEAT MODE ON";
+					CheatMode(snake, cheatSnake);
+				}
+			else {    //inCheatMode == False
+				showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
+				message = "CHEAT MODE OFF";				//not needed
+				//snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+				//for (size_t i(1); i < cheatSnake.size() - 1; ++i) {
+					//snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
+					//snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
+					//snake.at(i).y = cheatSnake.at(i).y;
+					//what happens past the length of the snake with the extended tail?
+				//}
+				snake = cheatSnake;   //return to it's pre-cheat length                       (THIS PUTS IT IN THE OLD SNAKE'S POSITION)
+				//Update how to use cheat mode message
+				}
+			} else
+				if (isArrowKey(key) == false && toupper(key) != CHEAT)                
+					message = "INVALID KEY!";  //set 'Invalid key' message	
+		}
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	endProgram();						//display final message
@@ -268,6 +270,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 
 
 void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+
   for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
     cout << '\a';	//beep the alarm
     Sleep(100);
