@@ -152,32 +152,32 @@ int main()
 void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake)
 { //initialise grid and place spot in middle
 	void setInitialMazeStructure(char maze[][SIZEX]);
-	void setSnakeInitialCoordinates(vector<Item>& Snake);
+	void setSnakeInitialCoordinates(char maze[][SIZEX], vector<Item>& Snake);
 	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
 	setInitialMazeStructure(maze);		//initialise maze
-	setSnakeInitialCoordinates(snake);
+	setSnakeInitialCoordinates(maze, snake);
 	updateGrid(grid, maze, snake);		//prepare grid
 }
 
-void setSnakeInitialCoordinates(vector<Item>& snake)
+void setSnakeInitialCoordinates(char maze[][SIZEX], vector<Item>& snake)
 { //set spot coordinates inside the grid at random at beginning of game
-   
-	snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-	snake.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-	//do  - // Alex - Can't test this because retargetting apparently doesn't work anymore, but should make it so the snake can't spawn in the interior walls. If it works then this can be cloned for the mouse
-	//{
-	//	snake.at(0).y = random(SIZEY - 2);		// Attempts to find co-ordinates at random again if the co-ordinate is inside a wall
-	//	snake.at(0).x = random(SIZEX - 2);		// make this into a do-while
-	//}  (snake.at(0).y == WALL || snake.at(0).y == WALL); 
+
+  //snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+  //snake.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	do //Alex - Doesn't work. No idea why though. If it works then this can be cloned for the mouse
+	{
+		snake.at(0).y = random(SIZEY - 2);		// Attempts to find co-ordinates at random again if the co-ordinate is inside a wall
+		snake.at(0).x = random(SIZEX - 2);
+
+	} while (maze[snake.at(0).y][snake.at(0).x] == WALL);
+
 	for (size_t i(1); i < snake.size(); ++i) {		//go through loop setting position of all the snake items to same spot
 		snake.at(i).y = snake.at(0).y;
 		snake.at(i).x = snake.at(0).x;
 	}	//Place head last so it appears on top (on initial snake)
 
-	//while
-
-} 
+}
 
 void setInitialMazeStructure(char maze[][SIZEX])
 { //set the position of the walls in the maze
