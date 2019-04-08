@@ -60,8 +60,6 @@ struct Item {
 //----- run game
 //---------------------------------------------------------------------------
 
-//to move snake move head to new position and delete the tail	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 int main()
 {
 	//function declarations (prototypes)
@@ -420,9 +418,10 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	
 	
 	
-	showMessage(clWhite, clRed, 40, 0, "FoP Task 1c - February 2019   ");
-//TODO: Show course SE/CS4G/CS, group number, students names and ids        CS4G2e  Lewis Birkett B8018431, Alex Hughes B7022472, Aiden Fleming B8025218
+	showMessage(clWhite, clRed, 40, 0, "FoP Task 1c - February 2019   ");  
 	showMessage(clWhite, clRed, 40, 1, "The Big Oof Squad               ");
+	showMessage(clWhite, clRed, 40, 2, "CS4G2e ");
+	showMessage(clWhite, clRed, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
 	//display menu options available
 //TODO: Show other options availables when ready...
 	showMessage(clRed, clYellow, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
