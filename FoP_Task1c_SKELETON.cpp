@@ -88,7 +88,7 @@ int main()
 	string message("LET'S START...");	//current message to player
 	bool inCheatMode = false;  //To check if already in cheatmode
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
-	size_t cheatLength;
+	vector<Item> cheatSnake = snake;
 
 	//have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
   //when size grows needs to check if incheatmode is true, then if it is only increase the cheatLength not current length
@@ -166,7 +166,7 @@ void setSnakeInitialCoordinates(vector<Item>& snake)
 		snake.at(i).x = snake.at(0).x;
 	}	//Place head last so it appears on top (on initial snake)
 
-	while
+	//while
 
 } 
 
