@@ -67,7 +67,7 @@ int main()
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& s, const int kc, string& mess);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item mouse, vector<Item>& s, const int kc, string& mess);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	bool wantsToQuit(const int key);
 	bool isCheatKey(const int k);
@@ -96,7 +96,7 @@ int main()
 	seed();								//seed the random number generator
 	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
 	initialiseGame(grid, maze,snake);	//initialise grid (incl. walls and spot)
-	showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
+	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	int key;							//current key selected by player
 	int movesLeft = PILLMOVES;		//for how many turns left for pill
 	do {
@@ -105,18 +105,18 @@ int main()
 		//string moves = to_string(movesLeft);					Use later when pill implemented
 		//showMessage(clRed, clYellow, 40, 13, moves);
 		if (isArrowKey(key))
-			updateGame(grid, maze, snake, key, message);                             
+			updateGame(grid, maze, mouse, snake, key, message);                             
 		else {
 			if (toupper(key) == CHEAT) {
 				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
 				inCheatMode = !inCheatMode;   //flips the bool
 				if (inCheatMode == true) {
-					showMessage(clRed, clYellow, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
+					showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
 					message = "CHEAT MODE ON";
 					CheatMode(snake, cheatSnake);
 				}
 			else {    //inCheatMode == False
-				showMessage(clRed, clYellow, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
+				showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
 				message = "CHEAT MODE OFF";
 				size_t currSnakeSize = snake.size();
 				snake.resize(cheatSnake.size());   //Set to size of cheatSnake
@@ -210,23 +210,23 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, const int keyCode, string& mess)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item mouse, vector<Item>& snake, const int keyCode, string& mess)
 { //update game
-	void updateGameData(const char g[][SIZEX], vector<Item>& s, const int kc, string& m);
+	void updateGameData(const char g[][SIZEX], Item mouse, vector<Item>& s, const int kc, string& m);
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s);		//does vector have to be const
-	updateGameData(grid, snake, keyCode, mess);		//move spot in required direction
+	updateGameData(grid, mouse, snake, keyCode, mess);		//move spot in required direction
 	updateGrid(grid, maze, snake);					//update grid information
 }
 
-void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, string& mess)
+void updateGameData(const char g[][SIZEX], Item rodent, vector<Item>& snake, const int key, string& mess)
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
-	//bool IsMousePresent = False   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
+	bool IsMousePresent = false;   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
 	//assert (isArrowKey(key));                                                                                           //REMOVE FOR NOW SO CAN USE NON ARROW KEYS
  
 	//reset message to blank
-	mess = "";
+	//mess = "";
 
 	//calculate direction of movement for given key
 	int dx(0), dy(0);
@@ -251,7 +251,7 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
 			// Alex - Should end the game the same way that it does when you quit the program
-			//showMessage(clRed, clYellow, 40, 8, "Big Oof, You are a dead boy.");
+			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof, You are a dead boy.");
 			//system("pause");	//hold output screen until a keyboard key is hit
 			//End Game
 	  //case mouse: - Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
@@ -260,13 +260,16 @@ void updateGameData(const char g[][SIZEX], vector<Item>& snake, const int key, s
 			break;
 		}
 
-	//if (IsMousePresent == false)  -  // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
-	//{
-	//	mouse.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-	//  mouse.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-	//
-	// IsMousePresent = true
-	//}
+	if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
+	{
+		rodent.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+		rodent.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+
+		rodent.y = rodent.y;
+		rodent.x = rodent.x;
+	
+	  IsMousePresent = true;
+	}
 
 }
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake)
@@ -381,7 +384,7 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	void paintGrid(const char g[][SIZEX]);
 //TODO: Change the colour of the messages
 	//display game title
-	showMessage(clBlack, clYellow, 0, 0, "Snek Gam");
+	showMessage(clBlack, clCyan, 0, 0, "Snek Gam");
 //TODO: Display date and time from the system
 	
 	//string month;
@@ -433,14 +436,14 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	
 	
 	
-	showMessage(clWhite, clRed, 40, 0, "FoP Task 1c - February 2019   ");  
-	showMessage(clWhite, clRed, 40, 1, "The Big Oof Squad               ");
-	showMessage(clWhite, clRed, 40, 2, "CS4G2e ");
-	showMessage(clWhite, clRed, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
+	showMessage(clWhite, clBlue, 40, 0, "FoP Task 1c - February 2019   ");  
+	showMessage(clWhite, clBlue, 40, 1, "The Big Oof Squad               ");
+	showMessage(clWhite, clBlue, 40, 2, "CS4G2e ");
+	showMessage(clWhite, clBlue, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
 	//display menu options available
 //TODO: Show other options availables when ready...
-	showMessage(clRed, clYellow, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
-	showMessage(clRed, clYellow, 40, 4, "TO QUIT - ENTER 'Q'           ");
+	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
+	showMessage(clDarkCyan, clWhite, 40, 4, "TO QUIT - ENTER 'Q'           ");
 
 	//print auxiliary messages if any
 	showMessage(clBlack, clWhite, 40, 8, mess);	//display current message
