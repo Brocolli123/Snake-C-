@@ -73,7 +73,7 @@ int main()
 	bool isCheatKey(const int k);
 	bool isArrowKey(const int k);
 	int  getKeyPress();
-	void checkScoreFile(const int score);		//take score in?
+	void checkScoreFile(const int score, const string name);
 	void endProgram();
 
 	//local variable declarations 
@@ -88,17 +88,21 @@ int main()
 	string message("LET'S START...");	//current message to player
 	bool inCheatMode = false;  //To check if already in cheatmode				//use struct???
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
+	string playername;		//For displaying and for score.txt file
+	int score;		//for score
 
-	//have instructions about turning on/off cheat mode (how to turn on by default (is set off at start))
-  //when size grows needs to check if incheatmode is true, then if it is only increase the cheatLength not current length
-
+	cout << "What is the player's name? \n";
+	cin >> playername;			//This stays here too after player inputs it
 	//action...
 	seed();								//seed the random number generator
 	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
 	initialiseGame(grid, maze,snake);	//initialise grid (incl. walls and spot)
 	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
+	showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
 	int key;							//current key selected by player
 	int movesLeft = PILLMOVES;		//for how many turns left for pill
+	//spawn a pill
+	//if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage?
 	do {
 		renderGame(grid, message);			//display game info, modified grid and messages
 		key = getKeyPress(); 	//read in  selected key: arrow or letter command
@@ -129,8 +133,7 @@ int main()
 					else {
 						snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
 						snake.at(i).y = cheatSnake.at(i).y;
-					}
-																			//Extra snake positions spawning at 0,0 not on top of the current tail end
+						}														//Extra snake positions spawning at 0,0 not on top of the current tail end
 					}
 				}
 			} else
@@ -138,8 +141,10 @@ int main()
 					message = "INVALID KEY!";  //set 'Invalid key' message	
 		}
 		--movesLeft;		//here or at top??????
+		++score;
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
+	checkScoreFile(score, playername);	//creates score file
 	endProgram();						//display final message
 	return 0;
 }
@@ -468,29 +473,23 @@ void paintGrid(const char g[][SIZEX])
 	}
 }
 
-void checkScoreFile(const int score) {		//independent function at minute, needs integration
-		string name;
-		cout << "\nWhat is the player's name? ";
-		cin >> name;
-		//get score from program
+void checkScoreFile(const int score, const string name) {		//independent function at minute, needs integration
 
 		ifstream fin;
 		fin.open(name + ".txt", ios::in);	//opens file with name as filename. in read mode
 
 		if (fin.fail())
-		{
-			cout << "\nNew Player: ";		//new player
+		{//new player
 			ofstream fout;
 			fout.open(name + ".txt", ios::out);	//create file
-			fout << score;						//set score
+			fout << "500";						//set score
 			fout.close();
 		}
 		else { //player already exists
 			int previousscore;
 			fin >> previousscore;
-			if (previousscore < score) {		//if current score is above score in file
+			if (previousscore < score) {		//new high score
 				fin.close();
-				cout << "\nNew High Score: ";
 				ofstream fout;
 				fout.open(name + ".txt", ios::out);	//open file
 				fout << score;						//change score to new score
