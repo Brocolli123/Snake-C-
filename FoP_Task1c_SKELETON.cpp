@@ -67,7 +67,7 @@ int main()
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& mess);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& mess, bool& IsMousePresent);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	bool wantsToQuit(const int key);
 	bool isCheatKey(const int k);
@@ -90,6 +90,7 @@ int main()
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
 	string playername;		//For displaying and for score.txt file
 	int score = 0;		//for score
+	bool IsMousePresent = false;
 
 	cout << "What is the player's name? \n";
 	cin >> playername;			//This stays here too after player inputs it
@@ -109,7 +110,7 @@ int main()
 		//string moves = to_string(movesLeft);					Use later when pill implemented
 		//showMessage(clRed, clYellow, 40, 13, moves);
 		if (isArrowKey(key))
-			updateGame(grid, maze, mouse, snake, key, message);                             
+			updateGame(grid, maze, mouse, snake, key, message, IsMousePresent);                             
 		else {
 			if (toupper(key) == CHEAT) {
 				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
@@ -156,13 +157,14 @@ int main()
 
 void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake, Item& mouse)
 { //initialise grid and place spot in middle
+	bool IsMousePresent = false;
 	void setInitialMazeStructure(char maze[][SIZEX]);
 	void setSnakeInitialCoordinates(const  char maze[][SIZEX], vector<Item>& Snake);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
+	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse, bool& IsMousePresent); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
 	setInitialMazeStructure(maze);		//initialise maze
 	setSnakeInitialCoordinates(maze, snake);
-	updateGrid(grid, maze, snake, mouse);		//prepare grid
+	updateGrid(grid, maze, snake, mouse, IsMousePresent);		//prepare grid
 }
 
 void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
@@ -215,19 +217,20 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, vector<Item>& snake, const int keyCode, string& mess)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent)
 { //update game
+	//bool IsMousePresent = false;
 	void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& m);
-	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse);		//does vector have to be const
+	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, bool& IsMousePresent);		//does vector have to be const
 	updateGameData(grid, mouse, snake, keyCode, mess);		//move spot in required direction
-	updateGrid(grid, maze, snake, mouse);					//update grid information
+	updateGrid(grid, maze, snake, mouse, IsMousePresent);					//update grid information
 }
 
 void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, const int key, string& mess)
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
-	bool IsMousePresent = false;   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
+	/*bool IsMousePresent = false;*/   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
 	//assert (isArrowKey(key));                                                                                           //REMOVE FOR NOW SO CAN USE NON ARROW KEYS
  
 	//reset message to blank
@@ -265,29 +268,37 @@ void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, con
 			break;
 		}
 
-	if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
-	{
-		mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-		mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-
-		mouse.y = mouse.y;
-		mouse.x = mouse.x;
-	
-	  IsMousePresent = true;
-	}
+	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
+	//{
+	//	mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+	//	mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	//
+	//  IsMousePresent = true;
+	//}
 
 }
-void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse)
+void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, bool& IsMousePresent)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item& spot);
+	//bool IsMousePresent = false;
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
 	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
 		placeItem(grid, snake.at(i));			//set current spot of snake tails
 	}
 	placeItem(grid, snake.at(0));			//set current spot of snake head
-	placeItem(grid, mouse);
+	if (IsMousePresent == false) 
+	{
+		mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+		mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+
+		//IsMousePresent = true;
+		
+        placeItem(grid, mouse);
+		IsMousePresent = true;
+	}
+
 }
 
 
