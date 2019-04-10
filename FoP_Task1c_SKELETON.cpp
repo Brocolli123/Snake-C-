@@ -275,7 +275,11 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   snake.push_back(growSnake);
 		   break;
 	   case PILL:
-		   snake.resize(4);									//Dislodges snake
+		   snake.resize(4);								
+		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
+			   snake.at(i).y = snake.at(i - 1).y;				//set to position before it
+			   snake.at(i).x = snake.at(i - 1).x;
+		   }
 		   snake.at(0).y += dy;	//go in that Y direction
 		   snake.at(0).x += dx;	//go in that X direction
 			//destroy pill
