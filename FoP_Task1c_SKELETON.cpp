@@ -81,8 +81,7 @@ int main()
 	char maze[SIZEY][SIZEX];			//structure of the maze
 	//Item HEAD = { 0, 0, SPOT }; 		//spot's position and symbol
 	//Item Tail = { 0,0,TAIL };			//Tail
-	Item mouse = { 0,0, MOUSE };		//mouse
-	Item pill = { 0,0, PILL };			//pill
+	Item mouse = { 0,0, MOUSE };		//mouse			//could change this definition to somewhere else?
 	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
 	vector<Item> cheatSnake = snake;
 	string message("LET'S START...");	//current message to player
@@ -91,7 +90,7 @@ int main()
 	string playername;		//For displaying and for score.txt file
 	int score = 0;		//for score
 	int miceEaten = 0;
-	bool IsMousePresent = false;
+	bool IsMousePresent = false;		//do I need one of these for pill? doesn't always have to exist	//is mousepresent is defined twice??
 
 	cout << "What is the player's name? \n";
 	cin >> playername;			//This stays here too after player inputs it
@@ -129,11 +128,12 @@ int main()
 				showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
 				message = "CHEAT MODE OFF";
 				snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+				//if (snake.at(i).item = "")	//push tails into snake
 				for (size_t i(1); i < cheatSnake.size(); ++i) {
 					snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
 					snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
 					snake.at(i).y = cheatSnake.at(i).y;
-													//Extra snake positions spawning at 0,0 not on top of the current tail end
+													//Extra snake positions spawning at cheatsnake position not on top of the current tail end
 					}
 				}
 			} else
@@ -307,10 +307,17 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 		} while (maze[mouse.y][mouse.x] == WALL);
 		//IsMousePresent = true;
 		
-        placeItem(grid, mouse);
-		IsMousePresent = true;
+        placeItem(grid, mouse);			//moving after first placement
+		IsMousePresent = true;	
 	}
 	placeItem(grid, mouse);
+	Item pill = { 0,0, PILL };			//define pill
+	//do {
+		pill.y = random(SIZEY - 2);		//place in random spot
+		pill.x = random(SIZEX - 2);
+		placeItem(grid, pill);
+	//} while () WHILE NOT PLACED ON A WALL
+
 }
 
 
