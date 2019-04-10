@@ -102,7 +102,7 @@ int main()
 	cin >> playername;			//This stays here too after player inputs it
 	//action...
 	seed();								//seed the random number generator
-	SetConsoleTitle("FoP 2018-19 - Task 1c - Game Skeleton");
+	SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
 	initialiseGame(grid, maze, snake, mouse, pill);	//initialise grid (incl. walls and spot)
 	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
@@ -201,17 +201,16 @@ void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
 
 void setInitialMazeStructure(char maze[][SIZEX])
 { //set the position of the walls in the maze
-//TODO: Amend initial maze configuration (change size changed and inner walls)
   //initialise maze configuration
 	char initialMaze[SIZEY][SIZEX] 	//local array to store the maze structure
 		= { { '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#' },
 		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
+		{ '#', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#' },
 		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', ' ', '#', ' ', ' ', ' ', '#', '#', ' ', ' ', '#' },
-		{ '#', ' ', ' ', '#', ' ', ' ', ' ', ' ', '#', ' ', ' ', '#' },
-		{ '#', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
+		{ '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', '#' },
+		{ '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', '#' },
 		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
+		{ '#', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#' },
 		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
 		{ '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#' } };
 	//with '#' for wall, ' ' for tunnel, etc. 
@@ -452,24 +451,11 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	string tostring(int x);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 	void paintGrid(const char g[][SIZEX]);
-//TODO: Change the colour of the messages
+    void displayDateAndTime();
+
 	//display game title
 	showMessage(clBlack, clCyan, 0, 0, "Snek Gam");
-//TODO: Make date & time into function
-
-	time_t rawtime;
-	struct tm * timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-
-	strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", timeinfo);
-	string str(buffer);
-
-	showMessage(clWhite, clBlue, 40, 15, str);
-
-	
+    displayDateAndTime();
 	showMessage(clWhite, clBlue, 40, 0, "FoP Task 1c - February 2019   ");  
 	showMessage(clWhite, clBlue, 40, 1, "The Big Oof Squad               ");
 	showMessage(clWhite, clBlue, 40, 2, "CS4G2e ");
@@ -487,12 +473,28 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	paintGrid(g);
 }
 
+void displayDateAndTime()
+{
+    void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
+
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", timeinfo);
+    string str(buffer);
+
+    showMessage(clWhite, clBlue, 40, 15, str);
+}
+
 void paintGrid(const char g[][SIZEX])
 { //display grid content on screen
 	selectBackColour(clBlack);
 	selectTextColour(clWhite);
 	gotoxy(0, 2);
-//TODO: Give a diferent colour to the symbol representing Spot
 	for (int row(0); row < SIZEY; ++row)
 	{
 		for (int col(0); col < SIZEX; ++col)
