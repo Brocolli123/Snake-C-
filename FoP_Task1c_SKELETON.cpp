@@ -297,13 +297,8 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   snake.at(0).y += dy;
 		   snake.at(0).x += dx;
 		   IsPillPresent = false;
-<<<<<<< Updated upstream
-
-	   defualt:
-=======
 		   break;
 	   default:
->>>>>>> Stashed changes
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 		   showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
 		}
