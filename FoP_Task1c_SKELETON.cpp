@@ -21,6 +21,7 @@
 #include <sstream>
 #include <ctime>
 #include <vector>
+#include <stdlib.h>
 using namespace std;
 
 //include our own libraries
@@ -221,7 +222,6 @@ void setInitialMazeStructure(char maze[][SIZEX])
 
 void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent, bool& IsPillPresent)
 { //update game
-	//bool IsMousePresent = false;
 	void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& m, bool& IsMousePresent, bool& IsPillPresent);
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, Item& pill, bool& IsMousePresent, bool& IsPillPresent);		//does vector have to be const
 	updateGameData(grid, mouse, pill, snake, keyCode, mess, IsMousePresent, IsPillPresent);		//move spot in required direction
@@ -230,6 +230,7 @@ void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item&
 
 void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, bool& IsMousePresent, bool& IsPillPresent)
 { //move spot in required direction
+	void endProgram();
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
 	/*bool IsMousePresent = false;*/   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
@@ -255,6 +256,13 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
+			//showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
+			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof. You are a dead boi.");
+			//system("pause");	//hold output screen until a keyboard key is hit
+			endProgram();
+			exit(0);
+			//cout << "Big Oof, You are a dead boi" << flush;
+			//system("CLS");
 			break;
 			// Alex - Should end the game the same way that it does when you quit the program
 			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof, You are a dead boy.");
@@ -285,6 +293,9 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			//destroy pill
 		   IsPillPresent = false;
 
+	   defualt:
+		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
+		   showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
 		}
 
 	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
