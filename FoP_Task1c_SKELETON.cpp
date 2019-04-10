@@ -402,70 +402,33 @@ void renderGame(const char g[][SIZEX], const string& mess)
 //TODO: Change the colour of the messages
 	//display game title
 	showMessage(clBlack, clCyan, 0, 0, "Snek Gam");
-//TODO: Display date and time from the system
-	
-	//string month;
-	//struct tm newtime; // Declares the structure for displaying time
-	//time_t now = time(0); // Gets the system time
-	//localtime_s(&newtime, &now); // Gets the local time
-	//switch (newtime.tm_mon + 1) //Selects the month based on the number contained in newtime
-	//{
-	//case(1):
-	//	month = "January";
-	//	break;
-	//case(2):
-	//	month = "February";
-	//	break;
-	//case(3):
-	//	month = "March";
-	//	break;
-	//case(4):
-	//	month = "April";
-	//	break;
-	//case(5):
-	//	month = "May";
-	//	break;
-	//case(6):
-	//	month = "June";
-	//	break;
-	//case(7):
-	//	month = "July";
-	//	break;
-	//case(8):
-	//	month = "August";
-	//	break;
-	//case(9):
-	//	month = "September";
-	//	break;
-	//case(10):
-	//	month = "October";
-	//	break;
-	//case(11):
-	//	month = "November";
-	//	break;
-	//default:
-	//	month = "December";
-	//	break;
+//TODO: Make date & time into function
 
-	//}
-	//cout << newtime.tm_mday << " " << month << " " << (1900 + newtime.tm_year) << ", "; //Outputs the Date
-	//cout << newtime.tm_hour << ":" << setfill('0') << setw(2) << newtime.tm_min << ":" << setfill('0') << setw(2) << newtime.tm_sec << endl; //Outputs the Time
-	
-	
+	time_t rawtime;
+	struct tm * timeinfo;
+	char buffer[80];
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+
+	strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", timeinfo);
+	string str(buffer);
+
+	showMessage(clWhite, clBlue, 40, 15, str);
+
 	
 	showMessage(clWhite, clBlue, 40, 0, "FoP Task 1c - February 2019   ");  
 	showMessage(clWhite, clBlue, 40, 1, "The Big Oof Squad               ");
 	showMessage(clWhite, clBlue, 40, 2, "CS4G2e ");
 	showMessage(clWhite, clBlue, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
 	//display menu options available
-//TODO: Show other options availables when ready...
+
 	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
 	showMessage(clDarkCyan, clWhite, 40, 4, "TO QUIT - ENTER 'Q'           ");
 
 	//print auxiliary messages if any
 	showMessage(clBlack, clWhite, 40, 8, mess);	//display current message
 
-//TODO: Show your course, your group number and names on screen
 
 	//display grid contents
 	paintGrid(g);
