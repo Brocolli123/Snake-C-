@@ -90,6 +90,7 @@ int main()
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
 	string playername;		//For displaying and for score.txt file
 	int score = 0;		//for score
+	int miceEaten = 0;
 	bool IsMousePresent = false;
 
 	cout << "What is the player's name? \n";
@@ -109,6 +110,10 @@ int main()
 		key = getKeyPress(); 	//read in  selected key: arrow or letter command
 		//string moves = to_string(movesLeft);					Use later when pill implemented
 		//showMessage(clRed, clYellow, 40, 13, moves);
+		string scorestring = to_string(score);			//turn the score to a string
+		showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
+		string miceEatString = to_string(miceEaten);				//Have both on same line?
+		showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
 		if (isArrowKey(key))
 			updateGame(grid, maze, mouse, snake, key, message, IsMousePresent);                             
 		else {
