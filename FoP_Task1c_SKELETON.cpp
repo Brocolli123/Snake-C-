@@ -64,10 +64,10 @@ struct Item {
 int main()
 {
 	//function declarations (prototypes)
-	void initialiseGame(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse);
+	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item mouse, vector<Item>& s, const int kc, string& mess);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& mess);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	bool wantsToQuit(const int key);
 	bool isCheatKey(const int k);
@@ -89,7 +89,7 @@ int main()
 	bool inCheatMode = false;  //To check if already in cheatmode				//use struct???
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
 	string playername;		//For displaying and for score.txt file
-	int score;		//for score
+	int score = 0;		//for score
 
 	cout << "What is the player's name? \n";
 	cin >> playername;			//This stays here too after player inputs it
@@ -154,9 +154,9 @@ int main()
 //----- initialise game state
 //---------------------------------------------------------------------------
 
-void initialiseGame(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse)
+void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake, Item& mouse)
 { //initialise grid and place spot in middle
-	void setInitialMazeStructure(const char maze[][SIZEX]);
+	void setInitialMazeStructure(char maze[][SIZEX]);
 	void setSnakeInitialCoordinates(const  char maze[][SIZEX], vector<Item>& Snake);
 	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
@@ -165,7 +165,7 @@ void initialiseGame(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& 
 	updateGrid(grid, maze, snake, mouse);		//prepare grid
 }
 
-void setSnakeInitialCoordinates(char maze[][SIZEX], vector<Item>& snake)
+void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
 { //set spot coordinates inside the grid at random at beginning of game
 
   //snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
@@ -215,15 +215,15 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item mouse, vector<Item>& snake, const int keyCode, string& mess)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, vector<Item>& snake, const int keyCode, string& mess)
 { //update game
-	void updateGameData(const char g[][SIZEX], Item mouse, vector<Item>& s, const int kc, string& m);
+	void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& m);
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse);		//does vector have to be const
 	updateGameData(grid, mouse, snake, keyCode, mess);		//move spot in required direction
 	updateGrid(grid, maze, snake, mouse);					//update grid information
 }
 
-void updateGameData(const char g[][SIZEX], Item mouse, vector<Item>& snake, const int key, string& mess)
+void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, const int key, string& mess)
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
