@@ -32,7 +32,7 @@ using namespace std;
 //----- define constants
 //---------------------------------------------------------------------------
 
-const int PILLMOVES(10);
+const int PILLMOVES(10);		//10 by default (Max moves of a pill)
 //defining the size of the grid
 const int  SIZEX(12);    	//horizontal dimension
 const int  SIZEY(10);		//vertical dimension
@@ -101,7 +101,7 @@ int main()
 	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
 	int key;							//current key selected by player
-	int movesLeft = PILLMOVES;		//for how many turns left for pill
+	int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
 	//spawn a pill
 	//if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage?
 	do {
@@ -123,18 +123,12 @@ int main()
 			else {    //inCheatMode == False
 				showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
 				message = "CHEAT MODE OFF";
-				size_t currSnakeSize = snake.size();
 				snake.resize(cheatSnake.size());   //Set to size of cheatSnake
 				for (size_t i(1); i < cheatSnake.size(); ++i) {
 					snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
-					if (i > currSnakeSize) {							//NOT RUNNING THROUGH THIS CODE
-						snake.at(i).x = snake.at(currSnakeSize).x;		//To make the extra snake positions spawn on top of the last tail element
-						snake.at(i).y = snake.at(currSnakeSize).y;
-					}
-					else {
-						snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
-						snake.at(i).y = cheatSnake.at(i).y;
-						}														//Extra snake positions spawning at 0,0 not on top of the current tail end
+					snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
+					snake.at(i).y = cheatSnake.at(i).y;
+													//Extra snake positions spawning at 0,0 not on top of the current tail end
 					}
 				}
 			} else
