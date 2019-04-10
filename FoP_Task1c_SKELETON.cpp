@@ -70,6 +70,7 @@ int main()
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, bool& IsMousePresent, bool& IsPillPresent);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
+	void setKeyDirection(const int key, int& dx, int& dy);
 	bool wantsToQuit(const int key);
 	bool isCheatKey(const int k);
 	bool isArrowKey(const int k);
@@ -92,6 +93,8 @@ int main()
 	string playername;		//For displaying and for score.txt file
 	int score = 0;		//for score
 	int miceEaten = 0;
+	int dx = 0;
+	int dy = 0;
 	bool IsMousePresent = false;		
 	bool IsPillPresent = false;
 
@@ -127,16 +130,19 @@ int main()
 					message = "CHEAT MODE ON";
 					CheatMode(snake, cheatSnake);
 				}
-			else {    //inCheatMode == False
-				showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
-				message = "CHEAT MODE OFF";
-				snake.resize(cheatSnake.size());   //Set to size of cheatSnake
-				//if (snake.at(i).item = "")	//push tails into snake
-				for (size_t i(1); i < cheatSnake.size(); ++i) {
-					snake.at(i).symbol = cheatSnake.at(i).symbol;   //Set symbol of snake at the position to the cheatsnake's 
-					snake.at(i).x = cheatSnake.at(i).x;   //Sets the cheatSnake position to the current position of the snake
-					snake.at(i).y = cheatSnake.at(i).y;
-													//Extra snake positions spawning at cheatsnake position not on top of the current tail end
+				else {    //inCheatMode == False
+					showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
+					message = "CHEAT MODE OFF";
+					// SnakeNeedsToGrow = true;
+					//snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+					int sizeDifference = cheatSnake.size() - snake.size();
+					for (int i = 0; i < sizeDifference; i++)
+					{
+						Item growSnake;
+						growSnake.symbol = TAIL;
+						growSnake.x = snake.at((snake.size() - 1)).x;
+						growSnake.y = snake.at((snake.size() - 1)).y;
+						snake.push_back(growSnake);
 					}
 				}
 			} else
@@ -283,17 +289,21 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   snake.push_back(growSnake);
 		   break;
 	   case PILL:
-		   snake.resize(4);								
-		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
-			   snake.at(i).y = snake.at(i - 1).y;				//set to position before it
+		   snake.resize(4);
+		   for (size_t i(snake.size() - 1); i > 0; --i) {
+			   snake.at(i).y = snake.at(i - 1).y;
 			   snake.at(i).x = snake.at(i - 1).x;
 		   }
-		   snake.at(0).y += dy;	//go in that Y direction
-		   snake.at(0).x += dx;	//go in that X direction
-			//destroy pill
+		   snake.at(0).y += dy;
+		   snake.at(0).x += dx;
 		   IsPillPresent = false;
+<<<<<<< Updated upstream
 
 	   defualt:
+=======
+		   break;
+	   default:
+>>>>>>> Stashed changes
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 		   showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
 		}
