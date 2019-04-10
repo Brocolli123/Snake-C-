@@ -219,13 +219,13 @@ void setInitialMazeStructure(char maze[][SIZEX])
 void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent)
 { //update game
 	//bool IsMousePresent = false;
-	void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& m);
+	void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& s, const int kc, string& m, bool& IsMousePresent);
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, bool& IsMousePresent);		//does vector have to be const
-	updateGameData(grid, mouse, snake, keyCode, mess);		//move spot in required direction
+	updateGameData(grid, mouse, snake, keyCode, mess, IsMousePresent);		//move spot in required direction
 	updateGrid(grid, maze, snake, mouse, IsMousePresent);					//update grid information
 }
 
-void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, const int key, string& mess)
+void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, const int key, string& mess, bool& IsMousePresent)
 { //move spot in required direction
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
@@ -257,14 +257,25 @@ void updateGameData(const char g[][SIZEX], Item& mouse, vector<Item>& snake, con
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
+			break;
 			// Alex - Should end the game the same way that it does when you quit the program
 			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof, You are a dead boy.");
 			//system("pause");	//hold output screen until a keyboard key is hit
 			//End Game
-	  //case mouse: - Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
-		  //IsMousePresent = false
-		  //snake.pushBack(TAIL, TAIL)
-			break;
+	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
+		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
+			   snake.at(i).y = snake.at(i - 1).y;				//set to position before it
+			   snake.at(i).x = snake.at(i - 1).x;
+		   }
+		   snake.at(0).y += dy;	//go in that Y direction
+		   snake.at(0).x += dx;	//go in that X direction
+		   IsMousePresent = false;
+		   Item Temp;
+		   Temp.symbol = TAIL;
+		   Temp.x = snake.at((snake.size() - 1)).x;
+		   Temp.y = snake.at((snake.size() - 1)).y;
+		   snake.push_back(Temp);
+		   break;
 		}
 
 	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
@@ -290,9 +301,10 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 
 	if (IsMousePresent == false) 
 	{
-		mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-		mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-
+		do {
+			mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+			mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+		} while (maze[mouse.y][mouse.x] == WALL);
 		//IsMousePresent = true;
 		
         placeItem(grid, mouse);
