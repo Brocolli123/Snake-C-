@@ -287,6 +287,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 		placeItem(grid, snake.at(i));			//set current spot of snake tails
 	}
 	placeItem(grid, snake.at(0));			//set current spot of snake head
+
 	if (IsMousePresent == false) 
 	{
 		mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
@@ -297,7 +298,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
         placeItem(grid, mouse);
 		IsMousePresent = true;
 	}
-
+	placeItem(grid, mouse);
 }
 
 
@@ -459,6 +460,7 @@ void checkScoreFile(const int score, const string name) {		//independent functio
 			fout << "500";						//set score
 			fout.close();
 		}
+
 		else { //player already exists
 			int previousscore;
 			fin >> previousscore;
@@ -477,6 +479,6 @@ void checkScoreFile(const int score, const string name) {		//independent functio
 void endProgram()
 {
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	showMessage(clRed, clYellow, 40, 8, "Quitting Program");	
+	showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
 	system("pause");	//hold output screen until a keyboard key is hit
 }
