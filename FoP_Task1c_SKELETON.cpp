@@ -68,7 +68,7 @@ int main()
 	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, bool& IsMousePresent, bool& IsPillPresent);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	void setKeyDirection(const int key, int& dx, int& dy);
 	bool wantsToQuit(const int key);
@@ -120,7 +120,7 @@ int main()
 		string miceEatString = to_string(miceEaten);				//Have both on same line?
 		showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
 		if (isArrowKey(key))
-			updateGame(grid, maze, mouse, pill, snake, key, message, IsMousePresent, IsPillPresent);                             
+			updateGame(grid, maze, mouse, pill, snake, key, message, IsMousePresent, IsPillPresent, miceEaten);                             
 		else {
 			if (toupper(key) == CHEAT) {
 				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
@@ -151,6 +151,10 @@ int main()
 		}
 		--movesLeft;		//here or at top??????
 		++score;
+		if (miceEaten >= 7) 
+		{
+			return 0;
+		}
 	} while (!wantsToQuit(key));		//while user does not want to quit
 	renderGame(grid, message);			//display game info, modified grid and messages
 	checkScoreFile(score, playername);	//creates score file
@@ -226,15 +230,15 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent, bool& IsPillPresent)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten)
 { //update game
-	void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& m, bool& IsMousePresent, bool& IsPillPresent);
+	void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& m, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten);
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, Item& pill, bool& IsMousePresent, bool& IsPillPresent);		//does vector have to be const
-	updateGameData(grid, mouse, pill, snake, keyCode, mess, IsMousePresent, IsPillPresent);		//move spot in required direction
+	updateGameData(grid, mouse, pill, snake, keyCode, mess, IsMousePresent, IsPillPresent, miceEaten);		//move spot in required direction
 	updateGrid(grid, maze, snake, mouse, pill, IsMousePresent, IsPillPresent);					//update grid information
 }
 
-void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, bool& IsMousePresent, bool& IsPillPresent)
+void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten)
 { //move spot in required direction
 	void endProgram();
 	bool isArrowKey(const int k);
@@ -275,6 +279,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			//system("pause");	//hold output screen until a keyboard key is hit
 			//End Game
 	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
+		   miceEaten++;
 		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
 			   snake.at(i).y = snake.at(i - 1).y;				//set to position before it
 			   snake.at(i).x = snake.at(i - 1).x;
@@ -287,6 +292,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   growSnake.x = snake.at((snake.size() - 1)).x;
 		   growSnake.y = snake.at((snake.size() - 1)).y;
 		   snake.push_back(growSnake);
+		   //miceEaten++;
 		   break;
 	   case PILL:
 		   snake.resize(4);
