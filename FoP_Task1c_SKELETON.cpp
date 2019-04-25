@@ -56,6 +56,13 @@ const char CHEAT('C');
 struct Item {
 	int x, y;
 	char symbol;
+  bool visible;     //use later on
+};
+
+struct GameData {       //mouse present, pill present, mice eaten
+    bool IsMousePresent;
+    bool IsPillPresent;
+    int miceEaten;
 };
 
 //---------------------------------------------------------------------------
@@ -65,10 +72,10 @@ struct Item {
 int main()
 {
 	//function declarations (prototypes)
-	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill);
+	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD);
 	void renderGame(const char g[][SIZEX], const string& mess);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten);
+	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, GameData& gD);
 	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
 	void setKeyDirection(const int key, int& dx, int& dy);
 	bool wantsToQuit(const int key);
@@ -81,29 +88,23 @@ int main()
 	//local variable declarations 
 	char grid[SIZEY][SIZEX];			//grid for display
 	char maze[SIZEY][SIZEX];			//structure of the maze
-	//Item HEAD = { 0, 0, SPOT }; 		//spot's position and symbol
-	//Item Tail = { 0,0,TAIL };			//Tail
 	Item mouse = { 0,0, MOUSE };		//mouse			//could change this definition to somewhere else?
-	Item pill = { 0,0, PILL };
-	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};
+	Item pill = { 0,0, PILL };                                                        //add visible to these??
+	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};    //add visible to these??
 	vector<Item> cheatSnake = snake;
 	string message("LET'S START...");	//current message to player
 	bool inCheatMode = false;  //To check if already in cheatmode				//use struct???
 	bool hasCheated = false;  //Use later when displaying score to keep it to 0
 	string playername;		//For displaying and for score.txt file
 	int score = 0;		//for score
-	int miceEaten = 0;
-	int dx = 0;
-	int dy = 0;
-	bool IsMousePresent = false;		
-	bool IsPillPresent = false;
+  GameData gameData = { false, false, 0 };  //Sets up game data, mouse+pill present are false, 0 mice eaten
 
 	cout << "What is the player's name? \n";
 	cin >> playername;			//This stays here too after player inputs it
 	//action...
 	seed();								//seed the random number generator
 	SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
-	initialiseGame(grid, maze, snake, mouse, pill);	//initialise grid (incl. walls and spot)
+	initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
 	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
 	showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
 	int key;							//current key selected by player
@@ -117,10 +118,10 @@ int main()
 		//showMessage(clRed, clYellow, 40, 13, moves);
 		string scorestring = to_string(score);			//turn the score to a string
 		showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
-		string miceEatString = to_string(miceEaten);				//Have both on same line?
+		string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
 		showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
 		if (isArrowKey(key))
-			updateGame(grid, maze, mouse, pill, snake, key, message, IsMousePresent, IsPillPresent, miceEaten);                             
+			updateGame(grid, maze, mouse, pill, snake, key, message, gameData);                             
 		else {
 			if (toupper(key) == CHEAT) {
 				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
@@ -149,9 +150,9 @@ int main()
 				if (isArrowKey(key) == false && toupper(key) != CHEAT)                
 					message = "INVALID KEY!";  //set 'Invalid key' message	
 		}
-		--movesLeft;		//here or at top??????
-		++score;
-		if (miceEaten >= 7) 
+		--movesLeft;		//decrement pill moves left counter
+		++score;        //increment score on move
+		if (gameData.miceEaten >= 7) 
 		{
 			return 0;
 		}
@@ -167,17 +168,15 @@ int main()
 //----- initialise game state
 //---------------------------------------------------------------------------
 
-void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill)
+void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //initialise grid and place spot in middle
-	bool IsMousePresent = false;
-	bool IsPillPresent = false;
 	void setInitialMazeStructure(char maze[][SIZEX]);
 	void setSnakeInitialCoordinates(const  char maze[][SIZEX], vector<Item>& Snake);
-	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, bool& IsMousePresent, bool& IsPillPresent); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
+	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
 	setInitialMazeStructure(maze);		//initialise maze
 	setSnakeInitialCoordinates(maze, snake);
-	updateGrid(grid, maze, snake, mouse, pill, IsMousePresent, IsPillPresent);		//prepare grid
+	updateGrid(grid, maze, snake, mouse, pill, gD);		//prepare grid
 }
 
 void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
@@ -229,15 +228,15 @@ void setInitialMazeStructure(char maze[][SIZEX])
 //----- Update Game
 //---------------------------------------------------------------------------
 
-void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int keyCode, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten)
+void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int keyCode, string& mess, GameData& gD)
 { //update game
-	void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& m, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten);
-	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, Item& pill, bool& IsMousePresent, bool& IsPillPresent);		//does vector have to be const
-	updateGameData(grid, mouse, pill, snake, keyCode, mess, IsMousePresent, IsPillPresent, miceEaten);		//move spot in required direction
-	updateGrid(grid, maze, snake, mouse, pill, IsMousePresent, IsPillPresent);					//update grid information
+	void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& m, GameData& gD);
+	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, Item& pill, GameData& gD);		//does vector have to be const
+	updateGameData(grid, mouse, pill, snake, keyCode, mess, gD);		//move spot in required direction
+	updateGrid(grid, maze, snake, mouse, pill, gD);					//update grid information
 }
 
-void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, bool& IsMousePresent, bool& IsPillPresent, int& miceEaten)
+void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, GameData& gD)
 { //move spot in required direction
 	void endProgram();
 	bool isArrowKey(const int k);
@@ -278,20 +277,19 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			//system("pause");	//hold output screen until a keyboard key is hit
 			//End Game
 	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
-		   miceEaten++;
+		   gD.miceEaten++;
 		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
 			   snake.at(i).y = snake.at(i - 1).y;				//set to position before it
 			   snake.at(i).x = snake.at(i - 1).x;
 		   }
 		   snake.at(0).y += dy;	//go in that Y direction
 		   snake.at(0).x += dx;	//go in that X direction
-		   IsMousePresent = false;
+		   gD.IsMousePresent = false;
 		   Item growSnake;
 		   growSnake.symbol = TAIL;
 		   growSnake.x = snake.at((snake.size() - 1)).x;
 		   growSnake.y = snake.at((snake.size() - 1)).y;
 		   snake.push_back(growSnake);
-		   //miceEaten++;
 		   break;
 	   case PILL:
 		   snake.resize(4);
@@ -301,7 +299,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   }
 		   snake.at(0).y += dy;
 		   snake.at(0).x += dx;
-		   IsPillPresent = false;
+		   gD.IsPillPresent = false;
 		   break;
 	   default:
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
@@ -317,7 +315,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 	//}
 
 }
-void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, bool& IsMousePresent, bool& isPillPresent)
+void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item& spot);
@@ -329,7 +327,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	}
 	placeItem(grid, snake.at(0));			//set current spot of snake head
 
-	if (IsMousePresent == false) 
+	if (gD.IsMousePresent == false) 
 	{
 		do {
 			mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
@@ -338,17 +336,17 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 		//IsMousePresent = true;
 		
         placeItem(grid, mouse);			//moving after first placement
-		IsMousePresent = true;	
+		gD.IsMousePresent = true;	
 	}
 	placeItem(grid, mouse);
 
-	if (isPillPresent == false) {
+	if (gD.IsPillPresent == false) {
 		do {
 			pill.y = random(SIZEY - 2);		//place in random spot
 			pill.x = random(SIZEX - 2);
 		} while (maze[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0
 	}
-	isPillPresent = true;
+	gD.IsPillPresent = true;
 	placeItem(grid, pill);
 
 }
