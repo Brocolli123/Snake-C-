@@ -4,14 +4,11 @@
 //Last updated: 23 February 2018
 //---------------------------------------------------------------------------
 
-//Go to 'View > Task List' menu to open the 'Task List' pane listing the initial amendments needed to this program
-
 //---------------------------------------------------------------------------
 //----- include libraries
 //---------------------------------------------------------------------------
 
 //include standard libraries
-
 #include <fstream>
 #include <iostream>	
 #include <iomanip> 
@@ -63,6 +60,8 @@ struct GameData {       //mouse present, pill present, mice eaten
     bool IsMousePresent;
     bool IsPillPresent;
     int miceEaten;
+    bool inCheatMode;
+    bool hasCheated;
 };
 
 //---------------------------------------------------------------------------
@@ -71,96 +70,82 @@ struct GameData {       //mouse present, pill present, mice eaten
 
 int main()
 {
-	//function declarations (prototypes)
-	void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD);
-	void renderGame(const char g[][SIZEX], const string& mess);
-	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, GameData& gD);
-	void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake);
-	void setKeyDirection(const int key, int& dx, int& dy);
-	bool wantsToQuit(const int key);
-	bool isCheatKey(const int k);
-	bool isArrowKey(const int k);
-	int  getKeyPress();
-	void checkScoreFile(const int score, const string name);
-	void endProgram();
+  //function declarations (prototypes)
+  void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD);
+  void renderGame(const char g[][SIZEX], const string& mess);
+  void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
+  void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, GameData& gD);
+  void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, string& message);                               //pass the string or just do that in main?
+  void setKeyDirection(const int key, int& dx, int& dy);
+  bool wantsToQuit(const int key);
+  bool isCheatKey(const int k);
+  bool isArrowKey(const int k);
+  int  getKeyPress();
+  void checkScoreFile(const int score, const string name);
+  void endProgram();
 
-	//local variable declarations 
-	char grid[SIZEY][SIZEX];			//grid for display
-	char maze[SIZEY][SIZEX];			//structure of the maze
-	Item mouse = { 0,0, MOUSE };		//mouse			//could change this definition to somewhere else?
-	Item pill = { 0,0, PILL };                                                        //add visible to these??
-	vector<Item> snake = {{ 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL }};    //add visible to these??
-	vector<Item> cheatSnake = snake;
-	string message("LET'S START...");	//current message to player
-	bool inCheatMode = false;  //To check if already in cheatmode				//use struct???
-	bool hasCheated = false;  //Use later when displaying score to keep it to 0
-	string playername;		//For displaying and for score.txt file
-	int score = 0;		//for score
-  GameData gameData = { false, false, 0 };  //Sets up game data, mouse+pill present are false, 0 mice eaten
+  //local variable declarations 
+  char grid[SIZEY][SIZEX];			//grid for display
+  char maze[SIZEY][SIZEX];			//structure of the maze
+  Item mouse = { 0,0, MOUSE };		//mouse			//could change this definition to somewhere else?
+  Item pill = { 0,0, PILL };                                                                                      //add visible to these??
+  vector<Item> snake = { { 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL } };                                  //add visible to these??
+  vector<Item> cheatSnake = snake;
+  string message("LET'S START...");	//current message to player
+  string playername;		//For displaying and for score.txt file
+  int score = 0;		//for score
+  GameData gameData = { false, false, 0, false, false };  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated
 
-	cout << "What is the player's name? \n";
-	cin >> playername;			//This stays here too after player inputs it
-	//action...
-	seed();								//seed the random number generator
-	SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
-	initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
-	showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
-	showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
-	int key;							//current key selected by player
-	int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
-	//spawn a pill
-	//if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage?
-	do {
-		renderGame(grid, message);			//display game info, modified grid and messages
-		key = getKeyPress(); 	//read in  selected key: arrow or letter command
-		//string moves = to_string(movesLeft);					Use later when pill implemented
-		//showMessage(clRed, clYellow, 40, 13, moves);
-		string scorestring = to_string(score);			//turn the score to a string
-		showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
-		string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
-		showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
-		if (isArrowKey(key))
-			updateGame(grid, maze, mouse, pill, snake, key, message, gameData);                             
-		else {
-			if (toupper(key) == CHEAT) {
-				hasCheated = true;            //better way of doing this every time?  Used to stop recording score
-				inCheatMode = !inCheatMode;   //flips the bool
-				if (inCheatMode == true) {
-					showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
-					message = "CHEAT MODE ON";
-					CheatMode(snake, cheatSnake);
-				}
-				else {    //inCheatMode == False
-					showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
-					message = "CHEAT MODE OFF";
-					// SnakeNeedsToGrow = true;
-					//snake.resize(cheatSnake.size());   //Set to size of cheatSnake
-					int sizeDifference = cheatSnake.size() - snake.size();
-					for (int i = 0; i < sizeDifference; i++)
-					{
-						Item growSnake;
-						growSnake.symbol = TAIL;
-						growSnake.x = snake.at((snake.size() - 1)).x;
-						growSnake.y = snake.at((snake.size() - 1)).y;
-						snake.push_back(growSnake);
-					}
-				}
-			} else
-				if (isArrowKey(key) == false && toupper(key) != CHEAT)                
-					message = "INVALID KEY!";  //set 'Invalid key' message	
-		}
-		--movesLeft;		//decrement pill moves left counter
-		++score;        //increment score on move
-		if (gameData.miceEaten >= 7) 
-		{
-			return 0;
-		}
-	} while (!wantsToQuit(key));		//while user does not want to quit
-	renderGame(grid, message);			//display game info, modified grid and messages
-	checkScoreFile(score, playername);	//creates score file
-	endProgram();						//display final message
-	return 0;
+  cout << "What is the player's name? \n";
+  cin >> playername;			//This stays here too after player inputs it
+  //action...
+  seed();								//seed the random number generator
+  SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
+  initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
+  showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
+  showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
+  int key;							//current key selected by player
+  int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
+  //spawn a pill
+  //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage?
+  do {                                                                                            //weird logic??? My bad - Lewis
+    renderGame(grid, message);			//display game info, modified grid and messages
+    key = getKeyPress(); 	//read in  selected key: arrow or letter command
+    string moves = to_string(movesLeft);					//Show how many moves left pill has
+    showMessage(clRed, clYellow, 40, 13, moves);
+    string scorestring = to_string(score);			//turn the score to a string
+    showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
+    string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
+    showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
+    if (isArrowKey(key)) {
+      updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
+    }
+    else {    //Not an arrow key
+      if (toupper(key) == CHEAT) {
+        CheatMode(snake, cheatSnake, gameData, message);
+      }
+      else {    //Not cheat key or arrow key
+        if (isArrowKey(key) == false && toupper(key) != CHEAT) {
+          message = "INVALID KEY!";  //set 'Invalid key' message
+        }
+      }
+      --movesLeft;		//decrement pill moves left counter
+      if (gameData.hasCheated == false) {
+        ++score;        //increment score on move (if user hasn't cheated)
+      }
+      else {
+        score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
+      }
+      if (gameData.miceEaten >= 7)
+      {
+        return 0;
+      }
+    } while (!wantsToQuit(key));		//while user does not want to quit
+    renderGame(grid, message);			//display game info, modified grid and messages
+    checkScoreFile(score, playername);	//creates score file
+    endProgram();						//display final message
+    return 0;
+  }
 }
 
 
@@ -303,7 +288,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   break;
 	   default:
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-		   showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
+		   showMessage(clDarkCyan, clWhite, 40, 16, "Quitting Program");
 		}
 
 	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
@@ -315,6 +300,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 	//}
 
 }
+
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
@@ -352,14 +338,44 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 }
 
 
-void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, string& message) {    //Reset snake     (Take in snake and return length of snake (reference or as int?) before function to be used to restore later
+  void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 
-  for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
-    cout << '\a';	//beep the alarm
-    Sleep(100);
+  if (gD.hasCheated != true) {  //Set true if not already.
+    gD.hasCheated = true; //Use to pause score
   }
-	cheatSnake = snake;	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
-	snake.resize(3);  //Sets it back to 4
+  gD.inCheatMode = !gD.inCheatMode; //Flips the bool
+
+
+    if (gD.inCheatMode == true) {
+      //Do Cheat Mode things
+      for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
+        cout << '\a';	//beep the alarm
+        Sleep(100);
+      }
+      cheatSnake = snake;	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
+      snake.resize(4);  //Sets it back to 4
+
+      showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
+      message = "CHEAT MODE ON";
+    }
+    else {    //inCheatMode == False   Resize back to original
+      showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
+      message = "CHEAT MODE OFF";
+      // SnakeNeedsToGrow = true;
+      //snake.resize(cheatSnake.size());   //Set to size of cheatSnake
+      int sizeDifference = cheatSnake.size() - snake.size();
+      for (int i = 0; i < sizeDifference; i++)
+      {
+        Item growSnake;
+        growSnake.symbol = TAIL;
+        growSnake.x = snake.at((snake.size() - 1)).x;
+        growSnake.y = snake.at((snake.size() - 1)).y;
+        snake.push_back(growSnake);
+      }
+    }
+  }
+
 }
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
