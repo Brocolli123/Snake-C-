@@ -112,7 +112,7 @@ int main()
     renderGame(grid, message);			//display game info, modified grid and messages
     key = getKeyPress(); 	//read in  selected key: arrow or letter command
     string moves = to_string(movesLeft);					//Show how many moves left pill has
-    showMessage(clRed, clYellow, 40, 13, moves);
+    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES ONLY UPDATING WHEN CHEAT MODE IS TURNED ON AND OFF??????????
     string scorestring = to_string(score);			//turn the score to a string
     showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
     string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
@@ -131,7 +131,7 @@ int main()
       }
       --movesLeft;		//decrement pill moves left counter
       if (gameData.hasCheated == false) {
-        ++score;        //increment score on move (if user hasn't cheated)
+        ++score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
       }
       else {
         score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
@@ -140,13 +140,13 @@ int main()
       {
         return 0;
       }
+    }
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message);			//display game info, modified grid and messages
     checkScoreFile(score, playername);	//creates score file
     endProgram();						//display final message
     return 0;
   }
-}
 
 
 //---------------------------------------------------------------------------
@@ -375,8 +375,6 @@ void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, stri
       }
     }
   }
-
-}
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
 { //reset the empty/fixed maze configuration into grid
