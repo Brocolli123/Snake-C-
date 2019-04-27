@@ -419,7 +419,6 @@ int getKeyPress()
 		keyPressed = _getch();
 	return keyPressed;				 
 }
-
 bool isArrowKey(const int key)
 {	//check if the key pressed is an arrow key (also accept 'K', 'M', 'H' and 'P')
 	return (key == LEFT) || (key == RIGHT) || (key == UP) || (key == DOWN);
@@ -510,7 +509,7 @@ void paintGrid(const char g[][SIZEX])
 	}
 }
 
-void checkScoreFile(const int score, const string name) {		//independent function at minute, needs integration
+void checkScoreFile(const int score, const string name) {		//FIX THISIHTHISHIT
 
 		ifstream fin;
 		fin.open(name + ".txt", ios::in);	//opens file with name as filename. in read mode
