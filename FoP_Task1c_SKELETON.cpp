@@ -100,6 +100,7 @@ int main()
 
   cout << "What is the player's name? \n";
   cin >> playername;			//This stays here too after player inputs it
+  checkScoreFile(score, playername);	//checks old score file             //NEEDS TO LOAD
   //action...
   seed();								//seed the random number generator
   SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
@@ -466,8 +467,9 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	showMessage(clWhite, clBlue, 40, 1, "The Big Oof Squad               ");
 	showMessage(clWhite, clBlue, 40, 2, "CS4G2e ");
 	showMessage(clWhite, clBlue, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
-	//display menu options available
-
+  showMessage(clWhite, clBlue, 40, 11, "b8025218, b8018431,b7022472");		//No Spaces to fit all on one line (change later?)
+	
+                                                                                      //display menu options available
 	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
 	showMessage(clDarkCyan, clWhite, 40, 4, "TO QUIT - ENTER 'Q'           ");
 
