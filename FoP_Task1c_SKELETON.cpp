@@ -62,6 +62,7 @@ struct GameData {       //mouse present, pill present, mice eaten
     int miceEaten;
     bool inCheatMode;
     bool hasCheated;
+    bool isDead;
 };
 
 //---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ int main()
   bool isArrowKey(const int k);
   int  getKeyPress();
   void checkScoreFile(const int score, const string name);
-  void endProgram();
+  void endProgram(bool isDead);   //Doesn't need reference because it quits program there
 
   //local variable declarations 
   char grid[SIZEY][SIZEX];			//grid for display
@@ -94,7 +95,7 @@ int main()
   string message("LET'S START...");	//current message to player
   string playername;		//For displaying and for score.txt file
   int score = 0;		//for score
-  GameData gameData = { false, false, 0, false, false };  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated
+  GameData gameData = { false, false, 0, false, false, false};  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated, isn't dead
 
   cout << "What is the player's name? \n";
   cin >> playername;			//This stays here too after player inputs it
@@ -140,10 +141,9 @@ int main()
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message);			//display game info, modified grid and messages
     checkScoreFile(score, playername);	//creates score file
-    endProgram();						//display final message
+    endProgram(gameData.isDead);						//display final message
     return 0;
   }
-
 
 //---------------------------------------------------------------------------
 //----- initialise game state
@@ -219,7 +219,7 @@ void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item&
 
 void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, GameData& gD)
 { //move spot in required direction
-	void endProgram();
+	void endProgram(bool isDead);
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
 	/*bool IsMousePresent = false;*/   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
@@ -248,7 +248,8 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			//showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof. You are a dead boi.");
 			//system("pause");	//hold output screen until a keyboard key is hit
-			endProgram();
+      gD.isDead = true; //Player is dead                                                                                  //Do this when player dies
+			endProgram(gD.isDead);
 			exit(0);
 			//cout << "Big Oof, You are a dead boi" << flush;
 			//system("CLS");
@@ -539,9 +540,14 @@ void checkScoreFile(const int score, const string name) {		//independent functio
 		}
 	}
 
-void endProgram()
+void endProgram(bool isDead)
 {
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");
+  if (isDead) {
+    showMessage(clDarkCyan, clWhite, 40, 8, "You Died, Quitting Program");    //Dead message
+  }
+  else {
+    showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");    //Regular Quit message
+  }
 	system("pause");	//hold output screen until a keyboard key is hit
 }
