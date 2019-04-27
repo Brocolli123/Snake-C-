@@ -107,39 +107,35 @@ int main()
   int key;							//current key selected by player
   int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
   //spawn a pill
-  //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage?
-  do {                                                                                            //weird logic??? My bad - Lewis
+  //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage? every second mouse? (use a bool or index?)
+  do {                                                                                          
     renderGame(grid, message);			//display game info, modified grid and messages
     key = getKeyPress(); 	//read in  selected key: arrow or letter command
     string moves = to_string(movesLeft);					//Show how many moves left pill has
-    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES ONLY UPDATING WHEN CHEAT MODE IS TURNED ON AND OFF??????????
+    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
     string scorestring = to_string(score);			//turn the score to a string
     showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
     string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
     showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
     if (isArrowKey(key)) {
-      updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
+        updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
     }
-    else {    //Not an arrow key
-      if (toupper(key) == CHEAT) {
+    if (toupper(key) == CHEAT) {
         CheatMode(snake, cheatSnake, gameData, message);
-      }
-      else {    //Not cheat key or arrow key
-        if (isArrowKey(key) == false && toupper(key) != CHEAT) {
-          message = "INVALID KEY!";  //set 'Invalid key' message
-        }
-      }
-      --movesLeft;		//decrement pill moves left counter
-      if (gameData.hasCheated == false) {
+    }
+    if (isArrowKey(key) == false && toupper(key) != CHEAT) {
+        message = "INVALID KEY!";  //set 'Invalid key' message
+    }
+    --movesLeft;		//decrement pill moves left counter
+    if (gameData.hasCheated == false) {
         ++score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
-      }
-      else {
+    }
+    else {
         score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
-      }
-      if (gameData.miceEaten >= 7)
-      {
+    }
+    if (gameData.miceEaten >= 7)
+    {
         return 0;
-      }
     }
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message);			//display game info, modified grid and messages
@@ -346,7 +342,7 @@ void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, stri
   }
   gD.inCheatMode = !gD.inCheatMode; //Flips the bool
 
-
+      //Update game meant to be in here??
     if (gD.inCheatMode == true) {
       //Do Cheat Mode things
       for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
