@@ -164,14 +164,13 @@ void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake,
 void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
 { //set spot coordinates inside the grid at random at beginning of game
 
-  //snake.at(0).y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-  //snake.at(0).x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-	do //Alex - Doesn't work. No idea why though. If it works then this can be cloned for the mouse
-	{
-		snake.at(0).y = random(SIZEY - 2);		// Attempts to find co-ordinates at random again if the co-ordinate is inside a wall
-		snake.at(0).x = random(SIZEX - 2);
-
-	} while (maze[snake.at(0).y][snake.at(0).x] == WALL);
+	//do
+	//{
+		//snake.at(0).y = random(SIZEY - 2);		// Finds co-ordinates at random again if the co-ordinate is inside a wall
+		//snake.at(0).x = random(SIZEX - 2);
+    snake.at(0).x = 4;    //Initial co-ords of snake set to middle of grid (Pascale wants this to be 0,0?????)
+    snake.at(0).y = 5;
+	//} while (maze[snake.at(0).y][snake.at(0).x] == WALL);   //not grid here doesn't have it here???
 
 	for (size_t i(1); i < snake.size(); ++i) {		//go through loop setting position of all the snake items to same spot
 		snake.at(i).y = snake.at(0).y;
@@ -242,9 +241,8 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
-      if (gD.isInvincible == false) {        //If player is killable end game
-        gD.isDead = true; //Player is dead                                                                            
-        endProgram(gD.isDead);
+      if (gD.isInvincible == false) {       //If player is killable end game
+        gD.isDead = true; //Player is dead      
       }
 			break;
 	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
@@ -276,13 +274,16 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
        mess = "CANNOT GO THERE!";
        if (gD.isInvincible == false) {        //If player is killable end game
          gD.isDead = true; //Player is dead                                                                            
-         endProgram(gD.isDead);
        }
        break;
 	   default:
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-		   showMessage(clDarkCyan, clWhite, 40, 16, "Quitting Program");
+		   showMessage(clDarkCyan, clWhite, 40, 16, "Quitting Program");  //We're in the endgame now
 		}
+
+  if (gD.isDead == true) {
+    endProgram(true);       //player is dead, send message to exit
+  }
 
 	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
 	//{
@@ -311,7 +312,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 		do {
 			mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
 			mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-		} while (maze[mouse.y][mouse.x] == WALL);
+		} while (grid[mouse.y][mouse.x] == WALL);
 		//IsMousePresent = true;
 		
         placeItem(grid, mouse);			//moving after first placement
@@ -323,7 +324,7 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 		do {
 			pill.y = random(SIZEY - 2);		//place in random spot
 			pill.x = random(SIZEX - 2);
-		} while (maze[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0
+		} while (grid[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0        (CHANGED TO GRID)
 	}
 	gD.IsPillPresent = true;
 	placeItem(grid, pill);
