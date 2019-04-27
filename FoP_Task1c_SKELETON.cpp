@@ -63,6 +63,7 @@ struct GameData {       //mouse present, pill present, mice eaten
     bool inCheatMode;
     bool hasCheated;
     bool isDead;
+    bool isInvincible;
 };
 
 //---------------------------------------------------------------------------
@@ -95,7 +96,7 @@ int main()
   string message("LET'S START...");	//current message to player
   string playername;		//For displaying and for score.txt file
   int score = 0;		//for score
-  GameData gameData = { false, false, 0, false, false, false};  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated, isn't dead
+  GameData gameData = { false, false, 0, false, false, false, false};  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated, isn't dead, isn't invincible
 
   cout << "What is the player's name? \n";
   cin >> playername;			//This stays here too after player inputs it
@@ -222,12 +223,8 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 	void endProgram(bool isDead);
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
-	/*bool IsMousePresent = false;*/   // Alex - Can't test this ='( - Used for the spawning of the mouse below 
-	//assert (isArrowKey(key));                                                                                           //REMOVE FOR NOW SO CAN USE NON ARROW KEYS
+	assert (isArrowKey(key));                                                                                 
  
-	//reset message to blank
-	//mess = "";
-
 	//calculate direction of movement for given key
 	int dx(0), dy(0);
 	setKeyDirection(key, dx, dy);
@@ -245,19 +242,11 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
-			//showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof. You are a dead boi.");
-			//system("pause");	//hold output screen until a keyboard key is hit
-      gD.isDead = true; //Player is dead                                                                                  //Do this when player dies
-			endProgram(gD.isDead);
-			exit(0);
-			//cout << "Big Oof, You are a dead boi" << flush;
-			//system("CLS");
+      if (gD.isInvincible == false) {        //If player is killable end game
+        gD.isDead = true; //Player is dead                                                                            
+        endProgram(gD.isDead);
+      }
 			break;
-			// Alex - Should end the game the same way that it does when you quit the program
-			//showMessage(clDarkCyan, clWhite, 40, 8, "Big Oof, You are a dead boy.");
-			//system("pause");	//hold output screen until a keyboard key is hit
-			//End Game
 	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
 		   gD.miceEaten++;
 		   for (size_t i(snake.size() - 1); i > 0; --i) {		//move tail first then head.
@@ -283,6 +272,13 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   snake.at(0).x += dx;
 		   gD.IsPillPresent = false;
 		   break;
+     case TAIL:
+       mess = "CANNOT GO THERE!";
+       if (gD.isInvincible == false) {        //If player is killable end game
+         gD.isDead = true; //Player is dead                                                                            
+         endProgram(gD.isDead);
+       }
+       break;
 	   default:
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 		   showMessage(clDarkCyan, clWhite, 40, 16, "Quitting Program");
@@ -345,18 +341,19 @@ void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, stri
 
       //Update game meant to be in here??
     if (gD.inCheatMode == true) {
-      //Do Cheat Mode things
-      for (int i(0); i < 4; ++i) {    //Beep Alarm 3 times  (can just \a\a\a?)      //NEED DELAY SO IT DOESN'T DO INSTANTLY
-        cout << '\a';	//beep the alarm
+      for (int i(0); i < 4; ++i) {   
+        cout << '\a';	          //beep the alarm x3
         Sleep(100);
       }
       cheatSnake = snake;	//get original snake length before cheating abd send the variable back to main for turning cheat mode off
       snake.resize(4);  //Sets it back to 4
 
+      gD.isInvincible = true;   //for not killing snake
       showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN OFF CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode
       message = "CHEAT MODE ON";
     }
     else {    //inCheatMode == False   Resize back to original
+      gD.isInvincible = false;  //no longer unkillable
       showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");		//Display instructions for cheat mode			//EXTRACT THIS TO A FUNCTOIN
       message = "CHEAT MODE OFF";
       // SnakeNeedsToGrow = true;
@@ -544,10 +541,11 @@ void endProgram(bool isDead)
 {
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
   if (isDead) {
-    showMessage(clDarkCyan, clWhite, 40, 8, "You Died, Quitting Program");    //Dead message
+    showMessage(clDarkCyan, clWhite, 40, 8, "You Died, Quitting Program");    //Dead message        NOT ENDING GAMME WITH THIS ONE???
   }
   else {
     showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");    //Regular Quit message
   }
 	system("pause");	//hold output screen until a keyboard key is hit
+  exit(0);
 }
