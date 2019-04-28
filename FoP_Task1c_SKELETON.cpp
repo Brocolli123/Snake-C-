@@ -49,6 +49,7 @@ const int  LEFT(75);		//left arrow
 //defining the other command letters
 const char QUIT('Q');		//to end the game
 const char CHEAT('C');
+const char SPEED('Z');
 
 struct Item {
 	int x, y;
@@ -114,18 +115,27 @@ int main()
   int tempKey = 0;
   bool keyPressed;
   int snakeSpeed = 500;
+  int currentSpeed;
+  bool speedIncrease = true;
   int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
   //spawn a pill
   //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage? every second mouse? (use a bool or index?)
   do {  
     renderGame(grid, message);          //display game info, modified grid and messages
     Sleep(snakeSpeed);	
-    if (snakeSpeed >= 250) {
-        snakeSpeed -= 4;
+    if (speedIncrease == true) {
+        if (snakeSpeed >= 250) {
+            snakeSpeed -= 4;
+        }
+        else {
+            snakeSpeed = 250;
+        }
     }
-    else {
-        snakeSpeed = 250;
+    else
+    {
+        snakeSpeed = 500;
     }
+
     keyPressed = false;
     if (_kbhit()) {
         key = getKeyPress(); 	//read in  selected key: arrow or letter command
@@ -147,6 +157,19 @@ int main()
         if (toupper(key) == CHEAT) {
             CheatMode(snake, cheatSnake, gameData, message);
         }
+
+        if (toupper(key) == SPEED) {
+            if (speedIncrease) {
+                speedIncrease = false;
+                currentSpeed = snakeSpeed;
+                snakeSpeed = 500;
+            }
+            else {
+                snakeSpeed = currentSpeed;
+                speedIncrease = true;
+            }
+        }
+
         if (isArrowKey(key) == false && toupper(key) != CHEAT) {
             message = "INVALID KEY!";  //set 'Invalid key' message
         }
