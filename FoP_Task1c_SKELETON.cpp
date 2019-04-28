@@ -56,14 +56,15 @@ struct Item {
   bool visible;     //use later on
 };
 
-struct GameData {       //mouse present, pill present, mice eaten
-    bool IsMousePresent;
+struct GameData {      
+    bool IsMousePresent;    //change to visible in struct
     bool IsPillPresent;
-    int miceEaten;
-    bool inCheatMode;
-    bool hasCheated;
-    bool isDead;
-    bool isInvincible;
+    int miceEaten;        //mice that have been eaten so far
+    bool inCheatMode;     //if user is in cheat mode
+    bool hasCheated;      //if user has used cheat mode to disable score
+    bool isDead;          //if user is dead for ending program
+    bool isInvincible;    //of user is unkillable in cheat mode (do need both of these if use incheatmode?)
+    bool spawnPill;       //So pill is only spawned every other mouse
 };
 
 //---------------------------------------------------------------------------
@@ -83,7 +84,8 @@ int main()
   bool isCheatKey(const int k);
   bool isArrowKey(const int k);
   int  getKeyPress();
-  void checkScoreFile(const int score, const string name);
+  void writeScoreFile(const int score, const string name);
+  int readScoreFile(const string name);
   void endProgram(bool isDead);   //Doesn't need reference because it quits program there
 
   //local variable declarations 
@@ -96,11 +98,12 @@ int main()
   string message("LET'S START...");	//current message to player
   string playername;		//For displaying and for score.txt file
   int score = 0;		//for score
-  GameData gameData = { false, false, 0, false, false, false, false};  //Sets up game data, mouse+pill present are false, 0 mice eaten, not in cheat mode, hasn't cheated, isn't dead, isn't invincible
+  GameData gameData = { false, false, 0, false, false, false, false, false}; 
 
   cout << "What is the player's name? \n";
   cin >> playername;			//This stays here too after player inputs it
-  checkScoreFile(score, playername);	//checks old score file             //NEEDS TO LOAD
+  score = readScoreFile(playername);    //reads file for old score
+  //writeScoreFile(score, playername);	//checks old score file             //NEEDS TO LOAD
   //action...
   seed();								//seed the random number generator
   SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
@@ -142,7 +145,7 @@ int main()
     }
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message);			//display game info, modified grid and messages
-    checkScoreFile(score, playername);	//creates score file
+    writeScoreFile(score, playername);	//creates score file
     endProgram(gameData.isDead);						//display final message
     return 0;
   }
@@ -314,22 +317,22 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 			mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
 			mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
 		} while (grid[mouse.y][mouse.x] == WALL);
-		//IsMousePresent = true;
-		
-        placeItem(grid, mouse);			//moving after first placement
+    placeItem(grid, mouse);			//moving after first placement
 		gD.IsMousePresent = true;	
+   // gD.spawnPill != gD.spawnPill; //invert bool so pill only spawns every other mouse
 	}
 	placeItem(grid, mouse);
 
-	if (gD.IsPillPresent == false) {
-		do {
-			pill.y = random(SIZEY - 2);		//place in random spot
-			pill.x = random(SIZEX - 2);
-		} while (grid[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0        (CHANGED TO GRID)
-	}
-	gD.IsPillPresent = true;
-	placeItem(grid, pill);
-
+  if (gD.IsPillPresent == false) {
+    //if (gD.spawnPill == true) {
+      do {
+        pill.y = random(SIZEY - 2);		//place in random spot
+        pill.x = random(SIZEX - 2);
+      } while (grid[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0        (CHANGED TO GRID)
+    }
+    gD.IsPillPresent = true;
+    placeItem(grid, pill);
+  //}
 }
 
 
@@ -511,7 +514,7 @@ void paintGrid(const char g[][SIZEX])
 	}
 }
 
-void checkScoreFile(const int score, const string name) {		//FIX THISIHTHISHIT
+void writeScoreFile(const int score, const string name) {		//Displaying high score vs current score    //always going to be 500, it's always above current score
 
 		ifstream fin;
 		fin.open(name + ".txt", ios::in);	//opens file with name as filename. in read mode
@@ -527,7 +530,7 @@ void checkScoreFile(const int score, const string name) {		//FIX THISIHTHISHIT
 		else { //player already exists
 			int previousscore;
 			fin >> previousscore;
-			if (previousscore < score) {		//new high score
+			if (previousscore < score) {		//new high score (and not the 500 default)
 				fin.close();
 				ofstream fout;
 				fout.open(name + ".txt", ios::out);	//open file
@@ -538,6 +541,20 @@ void checkScoreFile(const int score, const string name) {		//FIX THISIHTHISHIT
 				fin.close();
 		}
 	}
+
+int readScoreFile(const string name) { 
+  
+  ifstream fin;
+  fin.open(name + ".txt", ios::in);	//opens file with name as filename. in read mode
+
+  if (fin.fail())           //If file doesn't exist has default score
+  {//new player
+    return 500;   //No previous score (creates file later)
+  }
+  int score;
+  fin >> score;   //reads score from file if not
+  return score;
+}
 
 void endProgram(bool isDead)
 {
