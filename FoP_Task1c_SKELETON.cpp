@@ -110,35 +110,59 @@ int main()
   initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
   showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
   showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
-  int key;							//current key selected by player
+  int key = 0;							//current key selected by player
+  int tempKey = 0;
+  bool keyPressed;
+  int snakeSpeed = 500;
   int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
   //spawn a pill
   //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage? every second mouse? (use a bool or index?)
-  do {                                                                                          
-    renderGame(grid, message);			//display game info, modified grid and messages
-    key = getKeyPress(); 	//read in  selected key: arrow or letter command
+  do {  
+    renderGame(grid, message);          //display game info, modified grid and messages
+    Sleep(snakeSpeed);	
+    if (snakeSpeed >= 250) {
+        snakeSpeed -= 4;
+    }
+    else {
+        snakeSpeed = 250;
+    }
+    keyPressed = false;
+    if (_kbhit()) {
+        key = getKeyPress(); 	//read in  selected key: arrow or letter command
+        keyPressed = true;
+    }
+    
     string moves = to_string(movesLeft);					//Show how many moves left pill has
     showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
     string scorestring = to_string(score);			//turn the score to a string
     showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
     string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
     showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
-    if (isArrowKey(key)) {
-        updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
+    if (keyPressed) {
+        if (isArrowKey(key)) {
+            updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
+            tempKey = key;
+        }
+        
+        if (toupper(key) == CHEAT) {
+            CheatMode(snake, cheatSnake, gameData, message);
+        }
+        if (isArrowKey(key) == false && toupper(key) != CHEAT) {
+            message = "INVALID KEY!";  //set 'Invalid key' message
+        }
+        --movesLeft;		//decrement pill moves left counter
+        if (gameData.hasCheated == false) {
+            ++score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
+        }
+        else {
+            score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
+        }
     }
-    if (toupper(key) == CHEAT) {
-        CheatMode(snake, cheatSnake, gameData, message);
+    else if (tempKey != 0)
+    {
+       updateGame(grid, maze, mouse, pill, snake, tempKey, message, gameData);
     }
-    if (isArrowKey(key) == false && toupper(key) != CHEAT) {
-        message = "INVALID KEY!";  //set 'Invalid key' message
-    }
-    --movesLeft;		//decrement pill moves left counter
-    if (gameData.hasCheated == false) {
-        ++score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
-    }
-    else {
-        score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
-    }
+
     if (gameData.miceEaten >= 7)
     {
         return 0;
@@ -219,6 +243,7 @@ void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item&
 	void updateGrid(char g[][SIZEX], const char maze[][SIZEX], vector <Item>& s, Item& mouse, Item& pill, GameData& gD);		//does vector have to be const
 	updateGameData(grid, mouse, pill, snake, keyCode, mess, gD);		//move spot in required direction
 	updateGrid(grid, maze, snake, mouse, pill, gD);					//update grid information
+    
 }
 
 void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, GameData& gD)
@@ -228,10 +253,10 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 	void setKeyDirection(int k, int& dx, int& dy);
 	assert (isArrowKey(key));                                                                                 
  
+    
 	//calculate direction of movement for given key
 	int dx(0), dy(0);
 	setKeyDirection(key, dx, dy);
-
 	//check new target position in grid and update game data (incl. spot coordinates) if move is possible
 	switch (g[snake.at(0).y + dy][snake.at(0).x + dx])		//checking every point of snake for collision with wall
 		{			//...depending on what's on the target position in grid...
@@ -284,11 +309,11 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
 		   showMessage(clDarkCyan, clWhite, 40, 16, "Quitting Program");  //We're in the endgame now
 		}
-
+    
   if (gD.isDead == true) {
     endProgram(true);       //player is dead, send message to exit
   }
-
+  
 	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
 	//{
 	//	mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
@@ -470,7 +495,7 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	showMessage(clWhite, clBlue, 40, 1, "The Big Oof Squad               ");
 	showMessage(clWhite, clBlue, 40, 2, "CS4G2e ");
 	showMessage(clWhite, clBlue, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
-  showMessage(clWhite, clBlue, 40, 11, "b8025218, b8018431,b7022472");		//No Spaces to fit all on one line (change later?)
+    showMessage(clWhite, clBlue, 40, 11, "b8018431, b7022472, b8025218");		//No Spaces to fit all on one line (change later?)
 	
                                                                                       //display menu options available
 	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
