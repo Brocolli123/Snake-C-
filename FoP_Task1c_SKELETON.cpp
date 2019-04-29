@@ -54,18 +54,25 @@ const char SPEED('Z');
 struct Item {
 	int x, y;
 	char symbol;
-  bool visible;     //use later on
+  bool visible;     
 };
 
-struct GameData {      
-    bool IsMousePresent;    //change to visible in struct
-    bool IsPillPresent;
-    int miceEaten;        //mice that have been eaten so far
-    bool inCheatMode;     //if user is in cheat mode
-    bool hasCheated;      //if user has used cheat mode to disable score
-    bool isDead;          //if user is dead for ending program
-    bool isInvincible;    //of user is unkillable in cheat mode (do need both of these if use incheatmode?)
-    bool spawnPill;       //So pill is only spawned every other mouse
+struct GameData {
+  int miceEaten;        //mice that have been eaten so far
+  bool inCheatMode;     //if user is in cheat mode
+  bool hasCheated;      //if user has used cheat mode to disable score
+  bool isDead;          //if user is dead for ending program
+  bool isInvincible;    //of user is unkillable in cheat mode (do need both of these if use incheatmode?)
+  bool spawnPill;       //So pill is only spawned every other mouse
+  int movesLeft;        //moves left before pill disappears
+  int pillNo;
+  string playername;
+  int score;
+  int tempKey;      //Variables for automatic motion
+  bool keyPressed;
+  int snakeSpeed;
+  int currentSpeed;
+  bool speedIncrease;
 };
 
 //---------------------------------------------------------------------------
@@ -76,10 +83,10 @@ int main()
 {
   //function declarations (prototypes)
   void initialiseGame(char g[][SIZEX], char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD);
-  void renderGame(const char g[][SIZEX], const string& mess);
+  void renderGame(const char g[][SIZEX], const string& mess, GameData& gD);
   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
   void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, GameData& gD);
-  void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, string& message);                               //pass the string or just do that in main?
+  void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, string& message);
   void setKeyDirection(const int key, int& dx, int& dy);
   bool wantsToQuit(const int key);
   bool isCheatKey(const int k);
@@ -92,107 +99,95 @@ int main()
   //local variable declarations 
   char grid[SIZEY][SIZEX];			//grid for display
   char maze[SIZEY][SIZEX];			//structure of the maze
-  Item mouse = { 0,0, MOUSE };		//mouse			//could change this definition to somewhere else?
-  Item pill = { 0,0, PILL };                                                                                      //add visible to these??
+  Item mouse = { 0,0, MOUSE, false };		//mouse			//could change this definition to somewhere else?
+  Item pill = { 0,0, PILL, false };                                                                                      //add visible to these??
   vector<Item> snake = { { 0,0,HEAD }, { 0,0,TAIL }, { 0,0,TAIL }, { 0,0,TAIL } };                                  //add visible to these??
   vector<Item> cheatSnake = snake;
   string message("LET'S START...");	//current message to player
   string playername;		//For displaying and for score.txt file
-  int score = 0;		//for score
-  GameData gameData = { false, false, 0, false, false, false, false, false}; 
+  int key = 0;							//current key selected by player
+  GameData gameData = { 0, false, false, false, false, false, PILLMOVES, 2, "player", 0, 0, false, 500, 0, true };
 
   cout << "What is the player's name? \n";
-  cin >> playername;			//This stays here too after player inputs it
-  score = readScoreFile(playername);    //reads file for old score
-  //writeScoreFile(score, playername);	//checks old score file             //NEEDS TO LOAD
-  //action...
+  cin >> gameData.playername;			//This stays here too after player inputs it
+  gameData.score = readScoreFile(gameData.playername);    //reads file for old score
   seed();								//seed the random number generator
   SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
   initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
-  showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
-  showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
-  int key = 0;							//current key selected by player
-  int tempKey = 0;
-  bool keyPressed;
-  int snakeSpeed = 500;
-  int currentSpeed;
-  bool speedIncrease = true;
-  int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
-  //spawn a pill
-  //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage? every second mouse? (use a bool or index?)
+
   do {  
-    renderGame(grid, message);          //display game info, modified grid and messages
-    Sleep(snakeSpeed);	
-    if (speedIncrease == true) {
-        if (snakeSpeed >= 250) {
-            snakeSpeed -= 4;
+    renderGame(grid, message, gameData);          //display game info, modified grid and messages
+    Sleep(gameData.snakeSpeed);	
+    if (gameData.speedIncrease == true) {
+        if (gameData.snakeSpeed >= 250) {
+            gameData.snakeSpeed -= 4;
         }
         else {
-            snakeSpeed = 250;
+            gameData.snakeSpeed = 250;
         }
     }
     else
     {
-        snakeSpeed = 500;
+        gameData.snakeSpeed = 500;
     }
-
-    keyPressed = false;
+    gameData.keyPressed = false;
     if (_kbhit()) {
         key = getKeyPress(); 	//read in  selected key: arrow or letter command
-        keyPressed = true;
+        gameData.keyPressed = true;
     }
-    
-    string moves = to_string(movesLeft);					//Show how many moves left pill has
-    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
-    string scorestring = to_string(score);			//turn the score to a string
-    showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
-    string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
-    showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
-    if (keyPressed) {
+ 
+    if (gameData.keyPressed) {
         if (isArrowKey(key)) {
             updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
-            tempKey = key;
+            gameData.tempKey = key;
         }
-        
         if (toupper(key) == CHEAT) {
             CheatMode(snake, cheatSnake, gameData, message);
         }
-
         if (toupper(key) == SPEED) {
-            if (speedIncrease) {
-                speedIncrease = false;
-                currentSpeed = snakeSpeed;
-                snakeSpeed = 500;
+            if (gameData.speedIncrease) {
+                gameData.speedIncrease = false;
+                gameData.currentSpeed = gameData.snakeSpeed;
+                gameData.snakeSpeed = 500;
             }
             else {
-                snakeSpeed = currentSpeed;
-                speedIncrease = true;
+                gameData.snakeSpeed = gameData.currentSpeed;
+                gameData.speedIncrease = true;
             }
         }
-
         if (isArrowKey(key) == false && toupper(key) != CHEAT) {
             message = "INVALID KEY!";  //set 'Invalid key' message
         }
-        --movesLeft;		//decrement pill moves left counter
-        if (gameData.hasCheated == false) {
-            ++score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
-        }
-        else {
-            score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
+        else {    //Key is valid, do all counters
+          --gameData.movesLeft;
+          if (gameData.hasCheated == false) {
+            ++gameData.score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
+          }
+          else {
+            gameData.score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
+          }
         }
     }
-    else if (tempKey != 0)
+    else if (gameData.tempKey != 0)
     {
-       updateGame(grid, maze, mouse, pill, snake, tempKey, message, gameData);
+       updateGame(grid, maze, mouse, pill, snake, gameData.tempKey, message, gameData);
+       --gameData.movesLeft;
+       if (gameData.hasCheated == false) {
+         ++gameData.score;        //increment score on move (if user hasn't cheated)  //Score not going above 0?????
+       }
+       else {
+         gameData.score = 0;  //Has cheated so score is 0 (display message somewhere if user has cheated?)
+       }
     }
 
-    if (gameData.miceEaten >= 7)
+    if (gameData.miceEaten >= 7)  //Quit game if all mice are eaten (should call endprogram)
     {
-        return 0;
+      return 0;
     }
+
     } while (!wantsToQuit(key));		//while user does not want to quit
-    renderGame(grid, message);			//display game info, modified grid and messages
-    writeScoreFile(score, playername);	//creates score file
+    renderGame(grid, message, gameData);			//display game info, modified grid and messages
+    writeScoreFile(gameData.score, playername);	//creates score file    //NEED TO WRITE TO THIS IF PLAYER IS KILLED TOO (ALWAYS END UP HERE INSTEAD OF BREAKING OUT WHEN KILLED)
     endProgram(gameData.isDead);						//display final message
     return 0;
   }
@@ -280,6 +275,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 	//calculate direction of movement for given key
 	int dx(0), dy(0);
 	setKeyDirection(key, dx, dy);
+
 	//check new target position in grid and update game data (incl. spot coordinates) if move is possible
 	switch (g[snake.at(0).y + dy][snake.at(0).x + dx])		//checking every point of snake for collision with wall
 		{			//...depending on what's on the target position in grid...
@@ -305,7 +301,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   }
 		   snake.at(0).y += dy;	//go in that Y direction
 		   snake.at(0).x += dx;	//go in that X direction
-		   gD.IsMousePresent = false;
+		   mouse.visible = false;
 		   Item growSnake;
 		   growSnake.symbol = TAIL;
 		   growSnake.x = snake.at((snake.size() - 1)).x;
@@ -320,7 +316,7 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   }
 		   snake.at(0).y += dy;
 		   snake.at(0).x += dx;
-		   gD.IsPillPresent = false;
+		   pill.visible = false;
 		   break;
      case TAIL:
        mess = "CANNOT GO THERE!";
@@ -336,22 +332,14 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
   if (gD.isDead == true) {
     endProgram(true);       //player is dead, send message to exit
   }
-  
-	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
-	//{
-	//	mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-	//	mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-	//
-	//  IsMousePresent = true;
-	//}
-
 }
 
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item& spot);
-	//bool IsMousePresent = false;
+  void removeItem(char g[][SIZEX], const Item& spot);
+
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
 	for (size_t i(snake.size()-1); i > 0; --i) {			//Place head last so it appears on top (on initial snake)			ONLY LOOPING 3 TIMES (NOT SHOWING HEAD)
@@ -359,28 +347,34 @@ void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snak
 	}
 	placeItem(grid, snake.at(0));			//set current spot of snake head
 
-	if (gD.IsMousePresent == false) 
+  if (gD.movesLeft <= 0)  //pill run out of moves
+  {
+    removeItem(grid, pill);   //Get rid of pill
+    pill.visible = false;
+    gD.movesLeft = 10;  //reset counter
+  }
+
+	if (mouse.visible == false) 
 	{
 		do {
 			mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
 			mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-		} while (grid[mouse.y][mouse.x] == WALL);
+		} while (grid[mouse.y][mouse.x] != TUNNEL);
     placeItem(grid, mouse);			//moving after first placement
-		gD.IsMousePresent = true;	
-   // gD.spawnPill != gD.spawnPill; //invert bool so pill only spawns every other mouse
+		mouse.visible = true;	
 	}
 	placeItem(grid, mouse);
 
-  if (gD.IsPillPresent == false) {
-    //if (gD.spawnPill == true) {
+  if (pill.visible == false) {  //change to only spawn every other mouse
+    gD.movesLeft = 10;  //reset moves left on new pill
       do {
         pill.y = random(SIZEY - 2);		//place in random spot
         pill.x = random(SIZEX - 2);
-      } while (grid[pill.y][pill.x] == WALL);		//keeps randomly placing and goes to 0,0        (CHANGED TO GRID)
+      } while (grid[pill.y][pill.x] != TUNNEL);		//keeps randomly placing and goes to 0,0        (CHANGED TO GRID)
     }
-    gD.IsPillPresent = true;
+    pill.visible = true;
     placeItem(grid, pill);
-  //}
+    ++gD.pillNo;  //use to decide when to spawn pill
 }
 
 
@@ -433,6 +427,10 @@ void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
 void placeItem(char g[][SIZEX], const Item& item)
 { //place item at its new position in grid
 	g[item.y][item.x] = item.symbol;
+}
+
+void removeItem(char g[][SIZEX], const Item& item) {
+  g[item.y][item.x] = TUNNEL;   //Gets rid of the item
 }
 //---------------------------------------------------------------------------
 //----- process key
@@ -503,7 +501,7 @@ void showMessage(const WORD backColour, const WORD textColour, int x, int y, con
 	selectTextColour(textColour);
 	cout << message + string(40 - message.length(), ' ');
 }
-void renderGame(const char g[][SIZEX], const string& mess)
+void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
 { //display game title, messages, maze, spot and other items on screen
 	string tostring(char x);
 	string tostring(int x);
@@ -520,6 +518,15 @@ void renderGame(const char g[][SIZEX], const string& mess)
 	showMessage(clWhite, clBlue, 40, 12, "Lewis Birkett,Alex Hughes,Aiden Fleming");		//No Spaces to fit all on one line (change later?)
     showMessage(clWhite, clBlue, 40, 11, "b8018431, b7022472, b8025218");		//No Spaces to fit all on one line (change later?)
 	
+  showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
+  showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + gD.playername);
+  string moves = to_string(gD.movesLeft);					//Show how many moves left pill has
+  showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
+  string scorestring = to_string(gD.score);			//turn the score to a string
+  showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
+  string miceEatString = to_string(gD.miceEaten);				//Have both on same line?
+  showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
+
                                                                                       //display menu options available
 	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
 	showMessage(clDarkCyan, clWhite, 40, 4, "TO QUIT - ENTER 'Q'           ");
