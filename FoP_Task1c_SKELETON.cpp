@@ -74,6 +74,9 @@ struct GameData {
     int snakeSpeed;
     int currentSpeed;
     bool speedIncrease;
+    bool isPillInvincible;
+    int invincibleMoves;
+    int invincibleTimeLeft;
     float timer = 60;
     float Ticks1 = 0;
     float Ticks2 = 0;
@@ -114,7 +117,7 @@ int main()
   string message("LET'S START...");	//current message to player
   string playername;		//For displaying and for score.txt file
   int key = 0;							//current key selected by player
-  GameData gameData = { 0, false, false, false, false, false, PILLMOVES, 2, "player", 0, 0, false, 500, 0, true };
+  GameData gameData = { 0, false, false, false, false, false, PILLMOVES, 2, "player", 0, 0, false, 500, 0, true, false, 0};
 
   cout << "What is the player's name? \n";
   cin >> gameData.playername;			//This stays here too after player inputs it
@@ -138,13 +141,6 @@ int main()
         key = getKeyPress(); 	//read in  selected key: arrow or letter command
         gameData.keyPressed = true;
     }
-
-    string moves = to_string(movesLeft);					//Show how many moves left pill has
-    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
-    string scorestring = to_string(gameData.score);			//turn the score to a string
-    showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
-    string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
-    showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
     if (timerIsRunning == false) {
         gameData.Ticks2 = clock();
     }
@@ -158,7 +154,7 @@ int main()
         if (toupper(key) == CHEAT) {
             CheatMode(snake, cheatSnake, gameData, message);
         }
-        if (toupper(key) == SPEED) {
+        if (toupper(key) == SPEED) {                                              //Change back to seperate function
             if (gameData.speedIncrease) {
                 gameData.speedIncrease = false;
                 gameData.currentSpeed = gameData.snakeSpeed;
@@ -196,8 +192,16 @@ int main()
 
     if (gameData.miceEaten >= 7)  //Quit game if all mice are eaten (should call endprogram)
     {
-      return 0;
+      message = "All Mice Eaten, You Win!";
     }
+
+    if (gameData.isPillInvincible) {
+      --gameData.invincibleMoves;
+      if (gameData.invincibleMoves <= 0) {
+        gameData.isPillInvincible = false;
+      }
+    }
+
 
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message, gameData);			//display game info, modified grid and messages
@@ -302,9 +306,10 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 			break;
 		case WALL:  		//hit a wall and stay there
 			mess = "CANNOT GO THERE!";
-      if (gD.isInvincible == false) {       //If player is killable end game
+      if (gD.isInvincible == false || gD.isPillInvincible == false) {       //If player is killable end game
         gD.isDead = true; //Player is dead      
       }
+      gD.isPillInvincible = false;
 			break;
 	   case MOUSE: //- Alex - Should maybe get rid of the mouse and then have the tail of the snake grow by two. Not sure on this one, needs testing
 		   gD.miceEaten++;
@@ -322,6 +327,8 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   snake.push_back(growSnake);
 		   break;
 	   case PILL:
+       gD.isPillInvincible = true;
+       gD.invincibleMoves = 20;
 		   snake.resize(4);
 		   for (size_t i(snake.size() - 1); i > 0; --i) {
 			   snake.at(i).y = snake.at(i - 1).y;
@@ -333,9 +340,10 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		   break;
      case TAIL:
        mess = "CANNOT GO THERE!";
-       if (gD.isInvincible == false) {        //If player is killable end game
+       if (gD.isInvincible == false || gD.isPillInvincible == false) {        //If player is killable end game
          gD.isDead = true; //Player is dead                                                                            
        }
+       gD.isPillInvincible = true;
        break;
 	   default:
 		   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
@@ -345,13 +353,6 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
   if (gD.isDead == true) {
     endProgram(true, gD);       //player is dead, send message to exit
   }
-	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
-	//{
-	//	mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
-	//	mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
-	//
-	//  IsMousePresent = true;
-	//}
 
   countdownTimer(gD);
 }
@@ -545,7 +546,7 @@ void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
 	string tostring(char x);
 	string tostring(int x);
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-	void paintGrid(const char g[][SIZEX]);
+	void paintGrid(const char g[][SIZEX], GameData& gD);
     void displayDateAndTime();
 
 	//display game title
@@ -578,7 +579,7 @@ void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
 
 
 	//display grid contents
-	paintGrid(g);
+	paintGrid(g, gD);
 }
 
 void displayDateAndTime()
@@ -598,18 +599,27 @@ void displayDateAndTime()
     showMessage(clWhite, clBlue, 40, 15, str);
 }
 
-void paintGrid(const char g[][SIZEX])
+void paintGrid(const char g[][SIZEX], GameData& gD)
 { //display grid content on screen
-	selectBackColour(clBlack);
-	selectTextColour(clWhite);
-	gotoxy(0, 2);
-	for (int row(0); row < SIZEY; ++row)
-	{
-		for (int col(0); col < SIZEX; ++col)
-			cout << g[row][col];	//output cell content
-		cout << endl;
-	}
+  selectBackColour(clBlack);
+  selectTextColour(clWhite);
+  gotoxy(0, 2);
+  for (int row(0); row < SIZEY; ++row)
+  {
+    for (int col(0); col < SIZEX; ++col) {
+      if (g[row][col] == '@' || g[row][col] == '=') {
+        if (gD.isPillInvincible)
+          selectTextColour(clGreen);
+      }
+      else {
+        selectTextColour(clWhite);
+      }
+      cout << g[row][col];	//output cell content
+    }
+    cout << endl;
+  }
 }
+
 
 void writeScoreFile(const int score, const string name) {		//Displaying high score vs current score    //always going to be 500, it's always above current score
 
