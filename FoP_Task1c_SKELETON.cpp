@@ -57,22 +57,29 @@ struct Item {
   bool visible;     
 };
 
+
 struct GameData {
-  int miceEaten;        //mice that have been eaten so far
-  bool inCheatMode;     //if user is in cheat mode
-  bool hasCheated;      //if user has used cheat mode to disable score
-  bool isDead;          //if user is dead for ending program
-  bool isInvincible;    //of user is unkillable in cheat mode (do need both of these if use incheatmode?)
-  bool spawnPill;       //So pill is only spawned every other mouse
-  int movesLeft;        //moves left before pill disappears
-  int pillNo;
-  string playername;
-  int score;
-  int tempKey;      //Variables for automatic motion
-  bool keyPressed;
-  int snakeSpeed;
-  int currentSpeed;
-  bool speedIncrease;
+    int miceEaten;        //mice that have been eaten so far
+    bool inCheatMode;     //if user is in cheat mode
+    bool hasCheated;      //if user has used cheat mode to disable score
+    bool isDead;          //if user is dead for ending program
+    bool isInvincible;    //of user is unkillable in cheat mode (do need both of these if use incheatmode?)
+    bool spawnPill;       //So pill is only spawned every other mouse
+    int movesLeft;        //moves left before pill disappears
+    int pillNo;
+    string playername;
+    int score;
+    int tempKey;      //Variables for automatic motion
+    bool keyPressed;
+    int snakeSpeed;
+    int currentSpeed;
+    bool speedIncrease;
+    float timer = 60;
+    float Ticks1 = 0;
+    float Ticks2 = 0;
+    float Ticks3 = 0;
+    int timerOutput = 60;
+    bool outOfTime;
 };
 
 //---------------------------------------------------------------------------
@@ -94,7 +101,7 @@ int main()
   int  getKeyPress();
   void writeScoreFile(const int score, const string name);
   int readScoreFile(const string name);
-  void endProgram(bool isDead);   //Doesn't need reference because it quits program there
+  void endProgram(bool isDead, GameData gD);   //Doesn't need reference because it quits program there
 
   //local variable declarations 
   char grid[SIZEY][SIZEX];			//grid for display
@@ -114,6 +121,12 @@ int main()
   seed();								//seed the random number generator
   SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
   initialiseGame(grid, maze, snake, mouse, pill, gameData);	//initialise grid (incl. walls and spot)
+  showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
+  showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + playername);
+  bool timerIsRunning = false;
+  int movesLeft = PILLMOVES;		//for how many turns left for pill							(if user eats a pill return it to 10 or if it's 0 return it to 10)
+  //spawn a pill
+  //if pill moves is 0 spawn another (in updategame? or rendergame? or the key input stage? every second mouse? (use a bool or index?)
 
   do {  
     renderGame(grid, message, gameData);          //display game info, modified grid and messages
@@ -135,11 +148,22 @@ int main()
         key = getKeyPress(); 	//read in  selected key: arrow or letter command
         gameData.keyPressed = true;
     }
- 
+
+    string moves = to_string(movesLeft);					//Show how many moves left pill has
+    showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
+    string scorestring = to_string(gameData.score);			//turn the score to a string
+    showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
+    string miceEatString = to_string(gameData.miceEaten);				//Have both on same line?
+    showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
+    if (timerIsRunning == false) {
+        gameData.Ticks2 = clock();
+    }
+
     if (gameData.keyPressed) {
         if (isArrowKey(key)) {
             updateGame(grid, maze, mouse, pill, snake, key, message, gameData);
             gameData.tempKey = key;
+            timerIsRunning = true;
         }
         if (toupper(key) == CHEAT) {
             CheatMode(snake, cheatSnake, gameData, message);
@@ -188,7 +212,7 @@ int main()
     } while (!wantsToQuit(key));		//while user does not want to quit
     renderGame(grid, message, gameData);			//display game info, modified grid and messages
     writeScoreFile(gameData.score, playername);	//creates score file    //NEED TO WRITE TO THIS IF PLAYER IS KILLED TOO (ALWAYS END UP HERE INSTEAD OF BREAKING OUT WHEN KILLED)
-    endProgram(gameData.isDead);						//display final message
+    endProgram(gameData.isDead, gameData);						//display final message
     return 0;
   }
 
@@ -266,12 +290,11 @@ void updateGame(char grid[][SIZEX], const char maze[][SIZEX], Item& mouse, Item&
 
 void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>& snake, const int key, string& mess, GameData& gD)
 { //move spot in required direction
-	void endProgram(bool isDead);
+	void endProgram(bool isDead, GameData gD);
 	bool isArrowKey(const int k);
 	void setKeyDirection(int k, int& dx, int& dy);
+    void countdownTimer(GameData& gD);
 	assert (isArrowKey(key));                                                                                 
- 
-    
 	//calculate direction of movement for given key
 	int dx(0), dy(0);
 	setKeyDirection(key, dx, dy);
@@ -330,15 +353,24 @@ void updateGameData(const char g[][SIZEX], Item& mouse, Item& pill, vector<Item>
 		}
     
   if (gD.isDead == true) {
-    endProgram(true);       //player is dead, send message to exit
+    endProgram(true, gD);       //player is dead, send message to exit
   }
+	//if (IsMousePresent == false) // Alex - Supposedly should dump the mouse in a random place if there isn't one present - Mouse logic still needs to be added and changed as to not allow for it to appear in a wall
+	//{
+	//	mouse.y = random(SIZEY - 2);		//vertical coordinates in range 1-(SIZEY-2)
+	//	mouse.x = random(SIZEX - 2);		//horizontal coordinate in range 1-(SIZEX - 2)
+	//
+	//  IsMousePresent = true;
+	//}
+
+  countdownTimer(gD);
 }
 
 void updateGrid(char grid[][SIZEX], const char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //update grid configuration after each move
 	void placeMaze(char g[][SIZEX], const char b[][SIZEX]);
 	void placeItem(char g[][SIZEX], const Item& spot);
-  void removeItem(char g[][SIZEX], const Item& spot);
+    void removeItem(char g[][SIZEX], const Item& spot);
 
 	placeMaze(grid, maze);	//reset the empty maze configuration into grid
 	//go through place item for each spot of snake in loop
@@ -501,6 +533,7 @@ void showMessage(const WORD backColour, const WORD textColour, int x, int y, con
 	selectTextColour(textColour);
 	cout << message + string(40 - message.length(), ' ');
 }
+
 void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
 { //display game title, messages, maze, spot and other items on screen
 	string tostring(char x);
@@ -528,11 +561,14 @@ void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
   showMessage(clDarkBlue, clWhite, 40, 17, miceEatString + "/7 Mice Eaten");		//Show mice eaten and update
 
                                                                                       //display menu options available
+    
 	showMessage(clDarkCyan, clWhite, 40, 3, "TO MOVE - USE KEYBOARD ARROWS ");
 	showMessage(clDarkCyan, clWhite, 40, 4, "TO QUIT - ENTER 'Q'           ");
 
 	//print auxiliary messages if any
 	showMessage(clBlack, clWhite, 40, 8, mess);	//display current message
+
+    showMessage(clDarkCyan, clWhite, 40, 8, "Time remaining: " + to_string(gD.timerOutput) + " seconds");
 
 
 	//display grid contents
@@ -611,15 +647,34 @@ int readScoreFile(const string name) {
   return score;
 }
 
-void endProgram(bool isDead)
+void endProgram(bool isDead, GameData gD)
 {
 	void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
-  if (isDead) {
-    showMessage(clDarkCyan, clWhite, 40, 8, "You Died, Quitting Program");    //Dead message        NOT ENDING GAMME WITH THIS ONE???
+
+  if (isDead && gD.outOfTime) {
+      showMessage(clDarkCyan, clWhite, 40, 8, "Time's up, you lose, Quitting Program");
   }
+  else if (isDead) {
+    showMessage(clDarkCyan, clWhite, 40, 8, "You Died With " + to_string(gD.timerOutput) + " seconds remaining");    //Dead message        NOT ENDING GAMME WITH THIS ONE???
+    showMessage(clDarkCyan, clWhite, 40, 9, "Quitting Program");
+  }
+
   else {
     showMessage(clDarkCyan, clWhite, 40, 8, "Quitting Program");    //Regular Quit message
   }
 	system("pause");	//hold output screen until a keyboard key is hit
   exit(0);
+}
+
+void countdownTimer(GameData& gD)
+{
+    gD.Ticks1 = clock();
+    gD.Ticks3 = (gD.Ticks1 - gD.Ticks2) / 1000;
+    gD.timer -= gD.Ticks3;
+    gD.timerOutput = round(gD.timer);
+    gD.Ticks2 = clock();
+    if (gD.timer <= 0) {
+        gD.outOfTime = true;
+        endProgram(true, gD);
+    }
 }
