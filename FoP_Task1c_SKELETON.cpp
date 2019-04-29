@@ -87,6 +87,7 @@ int main()
   void showMessage(const WORD backColour, const WORD textColour, int x, int y, const string& message);
   void updateGame(char g[][SIZEX], const char m[][SIZEX], Item& mouse, Item& pill, vector<Item>& s, const int kc, string& mess, GameData& gD);
   void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, string& message);
+  void SnakeMove(GameData& gD);
   void setKeyDirection(const int key, int& dx, int& dy);
   bool wantsToQuit(const int key);
   bool isCheatKey(const int k);
@@ -117,19 +118,8 @@ int main()
 
   do {  
     renderGame(grid, message, gameData);          //display game info, modified grid and messages
-    Sleep(gameData.snakeSpeed);	
-    if (gameData.speedIncrease == true) {
-        if (gameData.snakeSpeed >= 250) {
-            gameData.snakeSpeed -= 4;
-        }
-        else {
-            gameData.snakeSpeed = 250;
-        }
-    }
-    else
-    {
-        gameData.snakeSpeed = 500;
-    }
+    SnakeMove(gameData);      //Increase speed over time
+
     gameData.keyPressed = false;
     if (_kbhit()) {
         key = getKeyPress(); 	//read in  selected key: arrow or letter command
@@ -416,6 +406,22 @@ void CheatMode(vector<Item>& snake, vector<Item>& cheatSnake, GameData& gD, stri
       }
     }
   }
+
+void SnakeMove(GameData& gD) {    //Increase speed over time
+  Sleep(gD.snakeSpeed);
+  if (gD.speedIncrease == true) {
+    if (gD.snakeSpeed >= 250) {
+      gD.snakeSpeed -= 4;
+    }
+    else {
+      gD.snakeSpeed = 250;
+    }
+  }
+  else
+  {
+    gD.snakeSpeed = 500;
+  }
+}
 
 void placeMaze(char grid[][SIZEX], const char maze[][SIZEX])
 { //reset the empty/fixed maze configuration into grid
