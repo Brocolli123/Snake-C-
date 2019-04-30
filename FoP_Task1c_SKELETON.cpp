@@ -83,6 +83,8 @@ struct GameData {
     float Ticks3 = 0;
     int timerOutput = 60;
     bool outOfTime;
+	int levelNo = 0;
+	string levelStr;
 };
 
 //---------------------------------------------------------------------------
@@ -121,6 +123,25 @@ int main()
 
   cout << "What is the player's name? \n";
   cin >> gameData.playername;			//This stays here too after player inputs it
+  cout << "(1,2 or 3) \n";
+  cout << "Which level? \n";
+  cin >> gameData.levelNo;
+  cout << "\n";
+  while (gameData.levelNo < 0 || gameData.levelNo > 3)
+  {
+	  cout << "(1,2 or 3) \n";
+	  cout << "Which level? \n";
+	  cin >> gameData.levelNo;
+  }
+  switch (gameData.levelNo) 
+  {
+  case 1: gameData.levelStr = "One";
+	  break;
+  case 2: gameData.levelStr = "Two";
+	  break;
+  case 3: gameData.levelStr = "Three";
+	  break;
+  }
   gameData.score = readScoreFile(gameData.playername);    //reads file for old score
   seed();								//seed the random number generator
   SetConsoleTitleA("FoP 2018-19 - Task 1c - Game Skeleton");
@@ -193,6 +214,13 @@ int main()
     if (gameData.miceEaten >= 7)  //Quit game if all mice are eaten (should call endprogram)
     {
       message = "All Mice Eaten, You Win!";
+	  gameData.levelNo++;
+	  if (gameData.levelNo > 3) 
+	  {
+		  endProgram(gameData.isDead, gameData);
+	  }
+	  message = "Loading Level " + gameData.levelStr;
+	  
     }
 
     if (gameData.isPillInvincible) {
@@ -204,6 +232,7 @@ int main()
 
 
     } while (!wantsToQuit(key));		//while user does not want to quit
+	cout << "\n\n";
     renderGame(grid, message, gameData);			//display game info, modified grid and messages
     writeScoreFile(gameData.score, playername);	//creates score file    //NEED TO WRITE TO THIS IF PLAYER IS KILLED TOO (ALWAYS END UP HERE INSTEAD OF BREAKING OUT WHEN KILLED)
     endProgram(gameData.isDead, gameData);						//display final message
@@ -216,11 +245,11 @@ int main()
 
 void initialiseGame(char grid[][SIZEX], char maze[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD)
 { //initialise grid and place spot in middle
-	void setInitialMazeStructure(char maze[][SIZEX]);
+	void setInitialMazeStructure(char maze[][SIZEX], GameData& gD);
 	void setSnakeInitialCoordinates(const  char maze[][SIZEX], vector<Item>& Snake);
 	void updateGrid(char g[][SIZEX], const char m[][SIZEX], vector<Item>& snake, Item& mouse, Item& pill, GameData& gD); // Alex - Would need to add the MOUSE item here if it isn't public, I can't tell
 
-	setInitialMazeStructure(maze);		//initialise maze
+	setInitialMazeStructure(maze, gD);		//initialise maze
 	setSnakeInitialCoordinates(maze, snake);
 	updateGrid(grid, maze, snake, mouse, pill, gD);		//prepare grid
 }
@@ -243,20 +272,68 @@ void setSnakeInitialCoordinates(const char maze[][SIZEX], vector<Item>& snake)
 
 }
 
-void setInitialMazeStructure(char maze[][SIZEX])
+void setInitialMazeStructure(char maze[][SIZEX], GameData& gD)
 { //set the position of the walls in the maze
   //initialise maze configuration
-	char initialMaze[SIZEY][SIZEX] 	//local array to store the maze structure
-		= { { '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#' },
-		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#' },
-		{ '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#' },
-		{ '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#' } };
+
+	char initialMaze[SIZEY][SIZEX];
+
+	if (gD.levelNo == 1) {
+		ifstream mazefile("1.maz");
+		for (int row = 0; row < SIZEY; row++) {  // stop loops if nothing to read
+			for (int column = 0; column < SIZEX; column++)
+			{
+				mazefile >> initialMaze[row][column];
+				if (initialMaze[row][column] == 'X' || initialMaze[row][column] == 'x')
+				{
+					initialMaze[row][column] = ' ';
+				}
+				if (column == 11)
+				{
+					std::cout << '\n';
+				}
+			}
+		}
+	}
+	else if (gD.levelNo == 2) 
+	{
+		ifstream mazefile("2.maz");
+		for (int row = 0; row < SIZEY; row++) {  // stop loops if nothing to read
+			for (int column = 0; column < SIZEX; column++)
+			{
+				mazefile >> initialMaze[row][column];
+				if (initialMaze[row][column] == 'X' || initialMaze[row][column] == 'x')
+				{
+					initialMaze[row][column] = ' ';
+				}
+				if (column == 11)
+				{
+					std::cout << '\n';
+				}
+			}
+		}
+	}
+	else 
+	{
+		ifstream mazefile("3.maz");
+		for (int row = 0; row < SIZEY; row++) {  // stop loops if nothing to read
+			for (int column = 0; column < SIZEX; column++)
+			{
+				mazefile >> initialMaze[row][column];
+				if (initialMaze[row][column] == 'X' || initialMaze[row][column] == 'x')
+				{
+					initialMaze[row][column] = ' ';
+				}
+				if (column == 11)
+				{
+					std::cout << '\n';
+				}
+			}
+		}
+	}
+	
+	
+
 	//with '#' for wall, ' ' for tunnel, etc. 
 	//copy into maze structure with appropriate symbols
 	for (int row(0); row < SIZEY; ++row)
@@ -560,8 +637,9 @@ void renderGame(const char g[][SIZEX], const string& mess, GameData& gD)
 	
   showMessage(clDarkCyan, clWhite, 40, 5, "TO TURN ON CHEAT MODE - ENTER 'C'");	//Initial Cheat instructions (Here for now)
   showMessage(clDarkBlue, clWhite, 40, 6, "Player name is " + gD.playername);
+  showMessage(clDarkBlue, clWhite, 40, 7, "Level " + gD.levelStr);
   string moves = to_string(gD.movesLeft);					//Show how many moves left pill has
-  showMessage(clRed, clYellow, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
+  showMessage(clDarkCyan, clWhite, 40, 13, moves);                                                    //MOVES goes to -9 or something when player dies
   string scorestring = to_string(gD.score);			//turn the score to a string
   showMessage(clDarkBlue, clWhite, 40, 16, scorestring);		//Show player score and update
   string miceEatString = to_string(gD.miceEaten);				//Have both on same line?
@@ -660,6 +738,7 @@ int readScoreFile(const string name) {
   }
   int score;
   fin >> score;   //reads score from file if not
+  fin.close();
   return score;
 }
 
